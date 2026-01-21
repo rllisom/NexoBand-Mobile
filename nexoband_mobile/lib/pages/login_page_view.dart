@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LoginPageView extends StatelessWidget {
   const LoginPageView({super.key});
@@ -19,21 +20,7 @@ class LoginPageView extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(height: 200,),
-              Center(child: 
-                ShaderMask( shaderCallback: (Rect bounds){
-                  return LinearGradient(colors: [ Color(0xFFF13B57),Color(0xFFFC7E39)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    ).createShader(bounds);
-                },
-                  child: Text("NexoBand",style: TextStyle(
-                      fontSize: 42,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                )
-              ),
+              
               Container(
                 width: 120,
                 height: 120,
@@ -44,7 +31,19 @@ class LoginPageView extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(30)
                 ),
-                child: Icon(Icons.music_note,size: 60,color: Colors.white,),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.music_note,size: 60,color: Colors.white,),
+                    Text("NexoBand",style: GoogleFonts.chicle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+
+                  ],
+                ),
               ),
               SizedBox(height: 40,),
               Form(
@@ -86,7 +85,7 @@ class LoginPageView extends StatelessWidget {
               ),
               SizedBox(height: 20,),
               Container(
-                width: 350,
+                width: 330,
                 height: 40,
                 decoration: BoxDecoration(
                   gradient : LinearGradient(colors: [ Color(0xFFF13B57),Color(0xFFFC7E39)]),
@@ -99,7 +98,7 @@ class LoginPageView extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Si no tienes cuenta,",style: TextStyle(fontWeight: FontWeight.bold),),
+                    Text("Si no tienes cuenta,",style: TextStyle(fontWeight: FontWeight.bold,color: const Color.fromARGB(255, 94, 94, 94)),),
                     ShaderMask( shaderCallback: (Rect bounds){
                       return LinearGradient(colors: [ Color(0xFFF13B57),Color(0xFFFC7E39)],
                         begin: Alignment.centerLeft,
