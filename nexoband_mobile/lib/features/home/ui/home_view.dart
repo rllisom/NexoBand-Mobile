@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nexoband_mobile/ui/publicacion_view.dart';
+import 'package:nexoband_mobile/features/home/bloc/home_page_bloc.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/publicacion_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -10,6 +11,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
 
+  late HomePageBloc homePageBloc;
   int _selectedIndex = 0;
 
   Widget _getBody(){
@@ -23,6 +25,13 @@ class _HomeViewState extends State<HomeView> {
     }else{
       return Container();
     }
+  }
+
+  @override
+  void initState(){
+    super.initState();
+    _selectedIndex = 0;
+    HomePageBloc()..add(event);
   }
 
   @override
@@ -45,7 +54,7 @@ class _HomeViewState extends State<HomeView> {
             icon: Icon(Icons.home),
             label: "Inicio"
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.search),label: "Buscar"),
+            BottomNavigationBarItem(icon: Icon(Icons.search),label: "Eventos"),
             BottomNavigationBarItem(icon: Icon(Icons.chat),label: "Chat"),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: "Perfil")
         ]

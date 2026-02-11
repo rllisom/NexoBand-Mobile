@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nexoband_mobile/pages/home_view.dart';
-import 'package:nexoband_mobile/pages/login_page_view.dart';
+import 'package:nexoband_mobile/features/home/ui/home_view.dart';
+
 
 void main() {
   runApp(const MyApp());

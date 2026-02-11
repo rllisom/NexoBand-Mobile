@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nexoband_mobile/shared/publicacion_widget.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/publicacion_widget.dart';
 
 class PublicacionView extends StatelessWidget {
   const PublicacionView({super.key});
