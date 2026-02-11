@@ -5,8 +5,8 @@ class PublicacionWidget extends StatefulWidget {
   final String nombreUser;
   final String horaPublicacion;
   final String descripcion;
-  final bool isMulti;
   final String img;
+  final int comentarios;
 
   const PublicacionWidget({
     super.key,
@@ -14,8 +14,8 @@ class PublicacionWidget extends StatefulWidget {
     required this.nombreUser,
     required this.horaPublicacion,
     required this.descripcion,
-    required this.isMulti,
-    required this.img
+    required this.img,
+    required this.comentarios
     });
 
   @override
@@ -32,15 +32,19 @@ class PublicacionWidgetState extends State<PublicacionWidget> {
       height: 400,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: Color(0xFF232120)
+        color: Color(0xFF232120),
       ),
-      child: Padding(padding: EdgeInsetsGeometry.all(10.0),
+      child: Padding(
+        padding: EdgeInsets.all(10.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 ClipOval(
-                  child: Image.network(widget.imgPerfil,scale: 10,
+                  child: Image.network(
+                    widget.imgPerfil,
+                    scale: 10,
                     width: 60,
                     height: 60,
                     fit: BoxFit.cover,
@@ -49,22 +53,38 @@ class PublicacionWidgetState extends State<PublicacionWidget> {
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(widget.nombreUser,style: TextStyle(color: Colors.white),),
-                      Text(widget.horaPublicacion,style: TextStyle(color: Colors.grey),)
+                      Text(
+                        widget.nombreUser,
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      Text(
+                        widget.horaPublicacion,
+                        style: TextStyle(color: Colors.grey),
+                      )
                     ],
                   ),
                 )
               ],
             ),
-            SizedBox(height: 25,),
-            Text(widget.descripcion,style: TextStyle(color: Colors.white),),
-            SizedBox(height: 20,),
-            Container(
+            SizedBox(height: 25),
+            Text(
+              widget.descripcion,
+              style: TextStyle(color: Colors.white),
+            ),
+            SizedBox(height: 20),
+            SizedBox(
               child: Row(
                 children: [
-                  Icon(Icons.favorite, color: like),
-                  Icon(Icons.comment, color: Colors.white,)
+                  Icon(
+                    Icons.comment,
+                    color: Colors.white,
+                  ),
+                  Text(
+                    "${widget.comentarios}",
+                    style: TextStyle(color: Colors.white),
+                  )
                 ],
               ),
             ),
