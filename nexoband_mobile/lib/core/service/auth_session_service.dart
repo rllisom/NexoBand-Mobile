@@ -12,18 +12,11 @@ class AuthSessionService implements AuthSessionInterface{
   @override
   Future<AuthSessionResponse> iniciarSesion(LoginRequest request) async {
     final url = '${ApiBaseUrl.baseUrl}/auth/login';
-    print('Intentando conectar a: $url');
-    
-    var response = await http.post(Uri.parse(url),
-      body: jsonEncode(request.toJson()),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    );
 
-    print('Status code: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    var response = await http.post(Uri.parse(url),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(request.toJson())
+    );
 
     try{
       if(response.statusCode >= 200 && response.statusCode < 300){
