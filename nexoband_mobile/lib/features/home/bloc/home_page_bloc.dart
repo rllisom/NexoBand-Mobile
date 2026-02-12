@@ -1,17 +1,19 @@
 import 'package:meta/meta.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nexoband_mobile/core/dto/publicacion_request.dart';
+import 'package:nexoband_mobile/core/model/chat_response.dart';
 import 'package:nexoband_mobile/core/model/publicacion_list_response.dart';
 import 'package:nexoband_mobile/core/service/publicacion_service.dart';
+import 'package:nexoband_mobile/core/service/chat_service.dart';
 
 part 'home_page_event.dart';
 part 'home_page_state.dart';
 
 class HomePageBloc extends Bloc<HomePageEvent, HomePageState> {
-
   final PublicacionService publicacionService;
+  final ChatService chatService;
 
-  HomePageBloc(this.publicacionService) : super(HomePageInitial()) {
+  HomePageBloc(this.publicacionService, this.chatService) : super(HomePageInitial()) {
     
     on<CargarPublicacionesUsuario>((event, emit) async {
       emit(PublicacionesCargando());
@@ -34,12 +36,21 @@ class HomePageBloc extends Bloc<HomePageEvent, HomePageState> {
     });
 
     on<EliminarPublicacion>((event, emit) async {
-      emit(PublicacionEliminada(  event.publicacionId));
       try {
         await publicacionService.eliminarPublicacion(event.publicacionId);
         emit(PublicacionEliminada(event.publicacionId));
       } catch (e) {
         emit(PublicacionEliminacionError(e.toString()));
+      }
+    });
+
+    on<CargarChats>((event, emit) async {
+      emit(ChatsCargando());
+      try {
+        final chats = await chatService.cargarChats();
+        emit(ChatsCargados(chats));
+      } catch (e) {
+        emit(ChatsCargaError(e.toString()));
       }
     });
   }

@@ -3,22 +3,13 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:nexoband_mobile/config/api_base_url.dart';
+import 'package:nexoband_mobile/config/guardar_token.dart';
 import 'package:nexoband_mobile/core/dto/publicacion_request.dart';
 import 'package:nexoband_mobile/core/interface/publicacion_interface.dart';
 import 'package:nexoband_mobile/core/model/publicacion_list_response.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 class PublicacionService implements PublicacionInterface{
-
-  Future<String> _getAuthToken() async{
-    final prefs = await SharedPreferences.getInstance();
-    final tokens = prefs.getString('auth_token');
-    if (tokens == null) {
-    throw Exception('No se encontró el token de autenticación.');
-    }
-    return tokens;
-  }
-
   @override
   Future<List<Publicacion>> listarPublicacionesUsuario() async{
 
@@ -27,7 +18,7 @@ class PublicacionService implements PublicacionInterface{
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Authorization': 'Bearer ${await _getAuthToken()}',
+        'Authorization': 'Bearer ${await GuardarToken.getAuthToken()}',
         },
       );
 
@@ -46,7 +37,7 @@ class PublicacionService implements PublicacionInterface{
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': 'Bearer ${await _getAuthToken()}',
+          'Authorization': 'Bearer ${await GuardarToken.getAuthToken()}',
         },
         body: jsonEncode(request.toJson()),
       );
@@ -64,7 +55,7 @@ class PublicacionService implements PublicacionInterface{
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': 'Bearer ${await _getAuthToken()}',
+          'Authorization': 'Bearer ${await GuardarToken.getAuthToken()}',
         },
         );
 
@@ -81,7 +72,7 @@ class PublicacionService implements PublicacionInterface{
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': 'Bearer ${await _getAuthToken()}',
+          'Authorization': 'Bearer ${await GuardarToken.getAuthToken()}',
         },
         );
 

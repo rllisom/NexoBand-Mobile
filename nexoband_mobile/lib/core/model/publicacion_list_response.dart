@@ -6,9 +6,9 @@ class PublicacionListResponse {
 
     factory PublicacionListResponse.fromJson(Map<String, dynamic> json) {
         return PublicacionListResponse(
-            publicaciones: (json['publicaciones'] as List)
-                .map((p) => Publicacion.fromJson(p))
-                .toList(),
+            publicaciones: (json['publicaciones'] as List?)
+                ?.map((p) => Publicacion.fromJson(p))
+                .toList() ?? [],
         );
     }
 }

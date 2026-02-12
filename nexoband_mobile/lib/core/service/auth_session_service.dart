@@ -23,6 +23,7 @@ class AuthSessionService implements AuthSessionInterface{
         final authSessionResponse = AuthSessionResponse.fromJson(jsonDecode(response.body));
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', authSessionResponse.token);
+        await prefs.setInt('user_id', authSessionResponse.user.id);
         return authSessionResponse;
       }
       else{

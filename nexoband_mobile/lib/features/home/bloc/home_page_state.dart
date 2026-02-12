@@ -39,3 +39,14 @@ class PublicacionEliminacionError extends HomePageState{
   PublicacionEliminacionError(this.mensaje);
 }
 
+//Estados relacionados con la carga de chats
+
+class ChatsCargando extends HomePageState{}
+class ChatsCargados extends HomePageState{
+  final List<ChatResponse> chats;
+  ChatsCargados(this.chats);
+}
+class ChatsCargaError extends HomePageState{
+  final String mensaje;
+  ChatsCargaError(this.mensaje);
+}
