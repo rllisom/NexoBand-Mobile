@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nexoband_mobile/features/ajustes/ui/ajustes_view.dart';
+import 'package:nexoband_mobile/features/evento/ui/evento_list_view.dart';
 import 'package:nexoband_mobile/features/login/ui/login_page_view.dart';
 
 
@@ -18,7 +20,7 @@ class MyApp extends StatelessWidget {
       
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const LoginPageView(),
+      home: const EventoListView(),
     );
   }
 }
