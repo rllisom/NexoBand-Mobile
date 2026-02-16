@@ -1,6 +1,6 @@
 class ChatResponse {
   final int id;
-  final String nombre;
+  final String? nombre;
   final int usuario1Id;
   final int usuario2Id;
   final DateTime createdAt;
@@ -11,7 +11,7 @@ class ChatResponse {
 
   ChatResponse({
     required this.id,
-    required this.nombre,
+    this.nombre,
     required this.usuario1Id,
     required this.usuario2Id,
     required this.createdAt,
@@ -44,7 +44,7 @@ class ChatResponse {
 
 class Mensaje {
   final int id;
-  final String texto;
+  final String? texto;
   final int chatsId;
   final int usersId;
   final DateTime createdAt;
@@ -52,7 +52,7 @@ class Mensaje {
 
   Mensaje({
     required this.id,
-    required this.texto,
+    this.texto,
     required this.chatsId,
     required this.usersId,
     required this.createdAt,
@@ -73,12 +73,12 @@ class Mensaje {
 
 class Usuario {
   final int id;
-  final String username;
+  final String? username;
   final String? imgPerfil;
 
   Usuario({
     required this.id,
-    required this.username,
+    this.username,
     this.imgPerfil,
   });
 

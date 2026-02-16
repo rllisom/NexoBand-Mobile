@@ -61,7 +61,7 @@ class _HomeViewState extends State<HomeView> {
             if (state is ChatsCargando) {
               return Center(child: CircularProgressIndicator());
             } else if (state is ChatsCargados) {
-              return ChatListView(chats: state.chats);
+              return ChatListView();
             } else if (state is ChatsCargaError) {
               return Center(
                 child: Text(
