@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nexoband_mobile/core/service/publicacion_service.dart';
 import 'package:nexoband_mobile/core/service/chat_service.dart';
+import 'package:nexoband_mobile/features/busqueda/ui/search_view.dart';
 import 'package:nexoband_mobile/features/chat/ui/chat_list_view.dart';
+import 'package:nexoband_mobile/features/evento/ui/evento_list_view.dart';
 import 'package:nexoband_mobile/features/home/bloc/home_page_bloc.dart';
 import 'package:nexoband_mobile/features/publicaciones/ui/publicacion_view.dart';
 
@@ -51,6 +53,8 @@ class _HomeViewState extends State<HomeView> {
           },
         ),
       );
+    } else if (_selectedIndex == 1) {
+      return EventoListView();
     } else if (_selectedIndex == 2) {
       return Container(
         width: double.infinity,
@@ -102,6 +106,24 @@ class _HomeViewState extends State<HomeView> {
           title: Text(_getTitle()),
           backgroundColor: const Color(0xFF232120),
           foregroundColor: Colors.white,
+          actions: _selectedIndex == 0
+              ? [
+                  IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => SearchView()),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: () {
+                      // TODO: Navegar a la pantalla de agregar publicación
+                    },
+                  ),
+                ]
+              : null,
         ),
         body: _getBody(),
         bottomNavigationBar: BottomNavigationBar(
