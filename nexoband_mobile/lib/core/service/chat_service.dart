@@ -11,7 +11,7 @@ class ChatService implements ChatInterface{
 
 
   @override
-  Future<ChatResponse> cargarChat(String chatId) async {
+  Future<ChatResponse> cargarChat(int chatId) async {
     var response = await http.get(Uri.parse("${ApiBaseUrl.baseUrl}/chats/$chatId"),
     headers: {
         'Content-Type': 'application/json',

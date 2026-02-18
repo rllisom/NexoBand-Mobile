@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
+import 'package:nexoband_mobile/core/model/chat_response.dart';
 
 import 'package:nexoband_mobile/core/service/chat_service.dart';
 

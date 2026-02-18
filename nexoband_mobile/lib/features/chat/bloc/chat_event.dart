@@ -9,3 +9,14 @@ final class BuscarChat extends ChatEvent {
   final String query; 
   BuscarChat(this.query); 
 }
+
+final class CargarChat extends ChatEvent {
+  final int chatId;
+  CargarChat(this.chatId);
+}
+
+final class EnviarMensaje extends ChatEvent {
+  final int chatId;
+  final String mensaje;
+  EnviarMensaje(this.chatId, this.mensaje);
+}
