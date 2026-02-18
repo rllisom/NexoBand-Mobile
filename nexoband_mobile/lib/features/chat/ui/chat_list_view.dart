@@ -52,24 +52,26 @@ class ChatListView extends StatelessWidget {
                         (user.imgPerfil!.startsWith('http://') ||
                             user.imgPerfil!.startsWith('https://'));
                     
-                    return ListTile(
-                      title: Text(user.username ?? 'Usuario',
-                          style: const TextStyle(color: Colors.white)),
-                      subtitle: Text(lastMessage,
-                          style: const TextStyle(color: Colors.white54)),
-                      leading: CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Colors.grey[700],
-                        backgroundImage: hasValidImage
-                            ? NetworkImage(user.imgPerfil!)
-                            : null,
-                        child: !hasValidImage
-                            ? const Icon(Icons.person, color: Colors.white, size: 28)
-                            : null,
+                    return GestureDetector(
+                      child: ListTile(
+                        title: Text(user.username ?? 'Usuario',
+                            style: const TextStyle(color: Colors.white)),
+                        subtitle: Text(lastMessage,
+                            style: const TextStyle(color: Colors.white54)),
+                        leading: CircleAvatar(
+                          radius: 24,
+                          backgroundColor: Colors.grey[700],
+                          backgroundImage: hasValidImage
+                              ? NetworkImage(user.imgPerfil!)
+                              : null,
+                          child: !hasValidImage
+                              ? const Icon(Icons.person, color: Colors.white, size: 28)
+                              : null,
+                        ),
+                        onTap: () {
+                          Navigator.pushNamed(context, '/chats/${chat.id}');
+                        },
                       ),
-                      onTap: () {
-                        // Navegar a la pantalla de chat individual
-                      },
                     );
                   },
                 );
