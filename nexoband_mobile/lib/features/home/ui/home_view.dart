@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nexoband_mobile/core/service/publicacion_service.dart';
 import 'package:nexoband_mobile/core/service/chat_service.dart';
+import 'package:nexoband_mobile/core/service/publicacion_service.dart';
 import 'package:nexoband_mobile/features/busqueda/ui/search_view.dart';
+import 'package:nexoband_mobile/features/chat/bloc/chat_bloc.dart';
 import 'package:nexoband_mobile/features/chat/ui/chat_list_view.dart';
 import 'package:nexoband_mobile/features/evento/ui/evento_list_view.dart';
-import 'package:nexoband_mobile/features/home/bloc/home_page_bloc.dart';
+import 'package:nexoband_mobile/features/publicaciones/bloc/publicacion_bloc.dart';
 import 'package:nexoband_mobile/features/publicaciones/ui/publicacion_view.dart';
 
 class HomeView extends StatefulWidget {
@@ -16,8 +17,26 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  late HomePageBloc homePageBloc;
+  late final PublicacionBloc publicacionBloc;
+  late final ChatBloc chatBloc;
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = 0;
+    publicacionBloc = PublicacionBloc(PublicacionService())
+      ..add(CargarPublicacionesUsuario());
+    chatBloc = ChatBloc(ChatService())
+      ..add(CargarChats());
+  }
+
+  @override
+  void dispose() {
+    publicacionBloc.close();
+    chatBloc.close();
+    super.dispose();
+  }
 
   String _getTitle() {
     switch (_selectedIndex) {
@@ -39,68 +58,62 @@ class _HomeViewState extends State<HomeView> {
       return Container(
         width: double.infinity,
         height: double.infinity,
-        color: Color(0xFF1D1817),
-        child: BlocBuilder<HomePageBloc, HomePageState>(
+        color: const Color(0xFF1D1817),
+        child: BlocBuilder<PublicacionBloc, PublicacionState>(
           builder: (context, state) {
             if (state is PublicacionesCargando) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (state is PublicacionesCargadas) {
               return PublicacionView(publicacion: state.publicaciones);
             } else if (state is PublicacionesCargaError) {
-              return Center(child: Text('Error: ${state.mensaje}'));
+              return Center(
+                child: Text(
+                  'Error: ${state.mensaje}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              );
             }
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           },
         ),
       );
     } else if (_selectedIndex == 1) {
-      return EventoListView();
+      return const EventoListView();
     } else if (_selectedIndex == 2) {
       return Container(
         width: double.infinity,
         height: double.infinity,
-        color: Color(0xFF1D1817),
-        child: BlocBuilder<HomePageBloc, HomePageState>(
+        color: const Color(0xFF1D1817),
+        child: BlocBuilder<ChatBloc, ChatState>(
           builder: (context, state) {
             if (state is ChatsCargando) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (state is ChatsCargados) {
-              return ChatListView();
+              return const ChatListView();
             } else if (state is ChatsCargaError) {
               return Center(
                 child: Text(
                   'Error: ${state.mensaje}',
-                  style: TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Colors.white),
                 ),
               );
             }
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           },
         ),
       );
     } else {
-      return Container();
+      return Container(); // Aquí irá tu vista de Perfil
     }
   }
 
   @override
-  void initState() {
-    super.initState();
-    _selectedIndex = 0;
-    homePageBloc = HomePageBloc(PublicacionService(), ChatService())
-      ..add(CargarPublicacionesUsuario());
-  }
-
-  @override
-  void dispose() {
-    homePageBloc.close();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: homePageBloc,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: publicacionBloc),
+        BlocProvider.value(value: chatBloc),
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: Text(_getTitle()),
@@ -112,7 +125,7 @@ class _HomeViewState extends State<HomeView> {
                     icon: const Icon(Icons.search),
                     onPressed: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => SearchView()),
+                        MaterialPageRoute(builder: (_) => const SearchView()),
                       );
                     },
                   ),
@@ -128,16 +141,13 @@ class _HomeViewState extends State<HomeView> {
         body: _getBody(),
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: const Color(0xFF232120),
-          unselectedItemColor: Color(0xFF9CA3AF),
-          selectedItemColor: Color(0xFFCC5200),
+          unselectedItemColor: const Color(0xFF9CA3AF),
+          selectedItemColor: const Color(0xFFCC5200),
           type: BottomNavigationBarType.fixed,
           currentIndex: _selectedIndex,
           onTap: (index) {
             setState(() {
               _selectedIndex = index;
-              if (index == 2) {
-                homePageBloc.add(CargarChats());
-              }
             });
           },
           items: const [

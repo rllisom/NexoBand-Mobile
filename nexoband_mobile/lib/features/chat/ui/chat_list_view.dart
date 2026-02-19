@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nexoband_mobile/config/obtener_usuario_registrado.dart';
 import 'package:nexoband_mobile/core/model/chat_response.dart';
-import 'package:nexoband_mobile/features/home/bloc/home_page_bloc.dart';
+import 'package:nexoband_mobile/features/chat/bloc/chat_bloc.dart';
 
 
 class ChatListView extends StatelessWidget {
@@ -15,7 +15,7 @@ class ChatListView extends StatelessWidget {
       width: double.infinity,
       height: double.infinity,
       color: const Color(0xFF1D1817),
-      child: BlocBuilder<HomePageBloc, HomePageState>(
+      child: BlocBuilder<ChatBloc, ChatState>(
         builder: (context, state) {
           if (state is ChatsCargando) {
             return const Center(child: CircularProgressIndicator());

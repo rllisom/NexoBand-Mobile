@@ -1,9 +1,22 @@
 part of 'chat_bloc.dart';
 
-@immutable
+
+
+
 sealed class ChatState {}
 
 final class ChatInitial extends ChatState {}
+
+
+class ChatsCargando extends ChatState{}
+class ChatsCargados extends ChatState{
+  final List<ChatResponse> chats;
+  ChatsCargados(this.chats);
+}
+class ChatsCargaError extends ChatState{
+  final String mensaje;
+  ChatsCargaError(this.mensaje);
+}
 
 final class ChatCargando extends ChatState {}
 final class ChatCargado extends ChatState {
