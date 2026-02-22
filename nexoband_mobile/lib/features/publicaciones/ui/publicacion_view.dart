@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nexoband_mobile/core/model/publicacion_list_response.dart';
-import 'package:nexoband_mobile/features/publicaciones/ui/publicacion_widget.dart';
+import 'package:nexoband_mobile/core/model/publicacion_response.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/widget/publicacion_widget.dart';
 
 
 class PublicacionView extends StatelessWidget {
@@ -29,7 +29,7 @@ class PublicacionView extends StatelessWidget {
                   nombreUser: pub.user?.nombre ?? 'Usuario Desconocido',
                   horaPublicacion:
                       '${pub.createdAt.hour}:${pub.createdAt.minute}',
-                  descripcion: pub.contenido,
+                  descripcion: pub.contenido ?? '',
                   img: pub.multimedia?.url ?? '',
                   comentarios: pub.comentarios.length,
                 ),

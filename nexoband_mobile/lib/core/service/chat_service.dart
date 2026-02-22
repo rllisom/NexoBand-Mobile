@@ -49,4 +49,6 @@ class ChatService implements ChatInterface{
     throw UnimplementedError();
   }
 
+  Future<dynamic> crearChat(int id) async {}
+
 }

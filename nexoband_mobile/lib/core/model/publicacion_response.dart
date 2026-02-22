@@ -1,22 +1,7 @@
-
-class PublicacionListResponse {
-    final List<Publicacion> publicaciones;
-
-    PublicacionListResponse({required this.publicaciones});
-
-    factory PublicacionListResponse.fromJson(Map<String, dynamic> json) {
-        return PublicacionListResponse(
-            publicaciones: (json['publicaciones'] as List?)
-                ?.map((p) => Publicacion.fromJson(p))
-                .toList() ?? [],
-        );
-    }
-}
-
 class Publicacion {
     final int id;
-    final String titulo;
-    final String contenido;
+    final String? titulo;
+    final String? contenido;
     final DateTime createdAt;
     final DateTime updatedAt;
     final User? user;
@@ -120,7 +105,9 @@ class Multimedia {
             archivo: json['archivo'],
             tipo: json['tipo'],
             url: json['url'],
-            createdAt: DateTime.parse(json['created_at']),
+            createdAt: json['created_at'] != null 
+            ? DateTime.parse(json['created_at']) 
+            : DateTime.now(),
         );
     }
 }
@@ -129,7 +116,7 @@ class Comentario {
     final int id;
     final int usersId;
     final int publicacionId;
-    final int bandasId;
+    final int? bandasId;
     final String contenidoTexto;
     final DateTime createdAt;
 
@@ -137,7 +124,7 @@ class Comentario {
         required this.id,
         required this.usersId,
         required this.publicacionId,
-        required this.bandasId,
+        this.bandasId,
         required this.contenidoTexto,
         required this.createdAt,
     });

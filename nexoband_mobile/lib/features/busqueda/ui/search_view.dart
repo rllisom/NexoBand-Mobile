@@ -1,25 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'search_musician_card_widget.dart';
-import 'search_band_card_widget.dart';
-
-class _NoResults extends StatelessWidget {
-  final SearchTab tab;
-  const _NoResults({required this.tab});
-
-  @override
-  Widget build(BuildContext context) {
-    final text = tab == SearchTab.musicians
-        ? 'No se encontraron músicos.'
-        : 'No se encontraron bandas.';
-    return Center(
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white54, fontSize: 18),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-}
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nexoband_mobile/core/service/search_service.dart';
+import 'package:nexoband_mobile/features/busqueda/bloc/search_bloc.dart';
+import 'package:nexoband_mobile/features/busqueda/ui/widget/search_band_card_widget.dart';
+import 'package:nexoband_mobile/features/busqueda/ui/widget/search_musician_card_widget.dart';
 
 
 class SearchView extends StatefulWidget {
@@ -29,187 +14,178 @@ class SearchView extends StatefulWidget {
   State<SearchView> createState() => _SearchViewState();
 }
 
-enum SearchTab { musicians, bands }
-
 class _SearchViewState extends State<SearchView> {
   final TextEditingController _controller = TextEditingController();
-  SearchTab _selectedTab = SearchTab.musicians;
-  String _search = '';
+  late final SearchBloc _searchBloc;
+  Timer? _debounce; // para no llamar a la API en cada tecla
 
-  // Simulación de resultados (reemplazar por integración backend)
-  List<Map<String, dynamic>> get musicians => [
-        {
-          'name': 'Alex Rivera',
-          'username': '@alexrivera',
-          'img': 'https://randomuser.me/api/portraits/men/32.jpg',
-          'tags': ['Guitarra eléctrica', 'Guitarra acústica'],
-          'followers': 2547,
-        },
-        {
-          'name': 'Carlos Mendez',
-          'username': '@carlosmendez',
-          'img': 'https://randomuser.me/api/portraits/men/44.jpg',
-          'tags': ['Saxofón', 'Flauta'],
-          'followers': 1678,
-        },
-      ];
+  @override
+  void initState() {
+    super.initState();
+    _searchBloc = SearchBloc(SearchService());
+  }
 
-  List<Map<String, dynamic>> get bands => [
-        {
-          'name': 'Jazz Collective',
-          'desc': 'Explorando las fronteras',
-          'img': 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4',
-          'tags': ['Jazz', 'Fusión', 'Experimental'],
-          'followers': 3210,
-        },
-      ];
+  @override
+  void dispose() {
+    _controller.dispose();
+    _debounce?.cancel();
+    _searchBloc.close();
+    super.dispose();
+  }
 
-  List<Map<String, dynamic>> get filteredResults {
-    if (_search.isEmpty) return [];
-    final query = _search.toLowerCase();
-    if (_selectedTab == SearchTab.musicians) {
-      return musicians
-          .where((m) => m['name'].toLowerCase().contains(query) ||
-              m['username'].toLowerCase().contains(query) ||
-              (m['tags'] as List).any((t) => t.toLowerCase().contains(query)))
-          .toList();
-    } else {
-      return bands
-          .where((b) => b['name'].toLowerCase().contains(query) ||
-              (b['desc'] as String).toLowerCase().contains(query) ||
-              (b['tags'] as List).any((t) => t.toLowerCase().contains(query)))
-          .toList();
-    }
+  void _onSearchChanged(String query) {
+    // Espera 400ms después de que el usuario deje de escribir
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      if (query.trim().isEmpty) {
+        _searchBloc.add(LimpiarBusqueda());
+      } else {
+        _searchBloc.add(BuscarTodo(query));
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final isMusicians = _selectedTab == SearchTab.musicians;
-    final results = filteredResults;
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
+    return BlocProvider.value(
+      value: _searchBloc,
+      child: Scaffold(
         backgroundColor: Colors.black,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
-          },
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context)
+                .pushNamedAndRemoveUntil('/home', (route) => false),
+          ),
+          title: const Text('Buscar',
+              style: TextStyle(color: Colors.white)),
+          centerTitle: false,
         ),
-        title: const Text('Buscar', style: TextStyle(color: Colors.white)),
-        centerTitle: false,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: TextField(
-              controller: _controller,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'Buscar músicos, bandas, instrumentos...',
-                hintStyle: const TextStyle(color: Colors.white54),
-                filled: true,
-                fillColor: Colors.grey[900],
-                prefixIcon: const Icon(Icons.search, color: Colors.white54),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
+        body: Column(
+          children: [
+            // Buscador
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 8),
+              child: TextField(
+                controller: _controller,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Buscar músicos, bandas, instrumentos...',
+                  hintStyle:
+                      const TextStyle(color: Colors.white54),
+                  filled: true,
+                  fillColor: Colors.grey[900],
+                  prefixIcon: const Icon(Icons.search,
+                      color: Colors.white54),
+                  suffixIcon: _controller.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.close,
+                              color: Colors.white54),
+                          onPressed: () {
+                            _controller.clear();
+                            _searchBloc.add(LimpiarBusqueda());
+                            setState(() {});
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+                onChanged: (value) {
+                  setState(() {}); // para mostrar/ocultar la X
+                  _onSearchChanged(value);
+                },
               ),
-              onChanged: (value) => setState(() => _search = value),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedTab = SearchTab.musicians),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isMusicians ? Colors.grey[900] : Colors.transparent,
-                        borderRadius: BorderRadius.circular(24),
+            const SizedBox(height: 8),
+            // Resultados
+            Expanded(
+              child: BlocBuilder<SearchBloc, SearchState>(
+                builder: (context, state) {
+                  if (state is SearchInitial) {
+                    return const Center(
+                      child: Text(
+                        'Busca músicos por nombre, instrumento o género...',
+                        style: TextStyle(
+                            color: Colors.white54, fontSize: 16),
+                        textAlign: TextAlign.center,
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.person, color: isMusicians ? Colors.white : Colors.white54),
-                          const SizedBox(width: 6),
-                          Text('Músicos', style: TextStyle(color: isMusicians ? Colors.white : Colors.white54, fontWeight: FontWeight.w600)),
+                    );
+                  } else if (state is SearchCargando) {
+                    return const Center(
+                        child: CircularProgressIndicator());
+                  } else if (state is SearchError) {
+                    return Center(
+                      child: Text(state.mensaje,
+                          style: const TextStyle(color: Colors.red)),
+                    );
+                  } else if (state is SearchResultados) {
+                    if (state.vacio) {
+                      return Center(
+                        child: Text(
+                          'No se encontraron resultados para "${_controller.text}"',
+                          style: const TextStyle(
+                              color: Colors.white54, fontSize: 16),
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }
+                    // Lista mezclada: primero usuarios, luego bandas
+                    return ListView(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      children: [
+                        if (state.usuarios.isNotEmpty) ...[
+                          const _SeccionHeader(titulo: 'Músicos'),
+                          ...state.usuarios.map((u) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: SearchMusicianCardWidget(
+                                    usuario: u),
+                              )),
                         ],
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedTab = SearchTab.bands),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: !isMusicians ? Colors.grey[900] : Colors.transparent,
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.music_note, color: !isMusicians ? Colors.white : Colors.white54),
-                          const SizedBox(width: 6),
-                          Text('Bandas', style: TextStyle(color: !isMusicians ? Colors.white : Colors.white54, fontWeight: FontWeight.w600)),
+                        if (state.bandas.isNotEmpty) ...[
+                          const _SeccionHeader(titulo: 'Bandas'),
+                          ...state.bandas.map((b) => Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: SearchBandCardWidget(banda: b),
+                              )),
                         ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                      ],
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-          Expanded(
-            child: _search.isEmpty
-                ? _EmptyState(tab: _selectedTab)
-                : results.isEmpty
-                    ? _NoResults(tab: _selectedTab)
-                    : ListView.builder(
-                        itemCount: results.length,
-                        itemBuilder: (context, index) {
-                          final item = results[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            child: isMusicians
-                                ? SearchMusicianCardWidget(data: item)
-                                : SearchBandCardWidget(data: item),
-                          );
-                        },
-                      ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  final SearchTab tab;
-  const _EmptyState({required this.tab});
+class _SeccionHeader extends StatelessWidget {
+  final String titulo;
+  const _SeccionHeader({required this.titulo});
 
   @override
   Widget build(BuildContext context) {
-    final text = tab == SearchTab.musicians
-        ? 'Busca músicos por nombre, instrumento o género...'
-        : 'Busca bandas por nombre, descripción o género...';
-    return Center(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, top: 4),
       child: Text(
-        text,
-        style: const TextStyle(color: Colors.white54, fontSize: 16),
-        textAlign: TextAlign.center,
+        titulo,
+        style: const TextStyle(
+          color: Colors.white54,
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.2,
+        ),
       ),
     );
   }
 }
-

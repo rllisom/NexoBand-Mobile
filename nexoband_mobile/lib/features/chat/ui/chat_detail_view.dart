@@ -1,36 +1,79 @@
 import 'package:flutter/material.dart';
+import 'package:nexoband_mobile/config/obtener_usuario_registrado.dart';
+import 'package:nexoband_mobile/core/model/chat_response.dart';
+import 'package:nexoband_mobile/core/service/mensaje_service.dart';
 
 class ChatDetailView extends StatefulWidget {
-  const ChatDetailView({super.key});
+  final ChatResponse chat;
+
+  const ChatDetailView({super.key, required this.chat});
 
   @override
   State<ChatDetailView> createState() => _ChatDetailViewState();
 }
 
 class _ChatDetailViewState extends State<ChatDetailView> {
-  // Datos simulados
-  final List<Map<String, dynamic>> mensajes = [
-    {
-      'texto': 'Hola! ¿Cómo va el ensayo?',
-      'hora': '10:15',
-      'esMio': false,
-    },
-    {
-      'texto': 'Muy bien! Ya tenemos lista la nueva canción',
-      'hora': '10:20',
-      'esMio': true,
-    },
-    {
-      'texto': 'Genial! ¿La ensayamos mañana?',
-      'hora': '10:25',
-      'esMio': false,
-    },
-    {
-      'texto': 'Nos vemos en el ensayo a las 6!',
-      'hora': '10:30',
-      'esMio': false,
-    },
-  ];
+  final TextEditingController _controller = TextEditingController();
+  final MensajeService _mensajeService = MensajeService();
+
+  late List<Mensaje> _mensajes;
+  int? _myUserId;
+  Usuario? _otroUsuario;
+  bool _enviando = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _mensajes = List.from(widget.chat.mensajes);
+    _cargarUsuario();
+  }
+
+  Future<void> _cargarUsuario() async {
+    final id = await ObtenerUsuarioRegistrado.getUserId();
+    setState(() {
+      _myUserId = id;
+      _otroUsuario = id == widget.chat.usuario1.id
+          ? widget.chat.usuario2
+          : widget.chat.usuario1;
+    });
+  }
+
+  Future<void> _enviarMensaje() async {
+    final texto = _controller.text.trim();
+    if (texto.isEmpty || _myUserId == null || _enviando) return;
+
+    setState(() => _enviando = true);
+    _controller.clear();
+
+    try {
+      final nuevoMensaje = await _mensajeService.enviarMensaje(
+        widget.chat.id,
+        _myUserId!,
+        texto,
+      );
+      setState(() {
+        _mensajes.add(nuevoMensaje);
+      });
+    } catch (e) {
+      // Si falla, mostramos un snackbar con el error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al enviar: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() => _enviando = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,49 +86,49 @@ class _ChatDetailViewState extends State<ChatDetailView> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Row(
-          children: [
-            ClipOval(
-              child: Image.network(
-                'https://randomuser.me/api/portraits/women/44.jpg',
-                width: 40,
-                height: 40,
-                fit: BoxFit.cover,
+        title: _otroUsuario == null
+            ? const CircularProgressIndicator()
+            : Row(
+                children: [
+                  ClipOval(
+                    child: _otroUsuario!.imgPerfil != null &&
+                            (_otroUsuario!.imgPerfil!.startsWith('http://') ||
+                                _otroUsuario!.imgPerfil!.startsWith('https://'))
+                        ? Image.network(
+                            _otroUsuario!.imgPerfil!,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            width: 40,
+                            height: 40,
+                            color: Colors.grey,
+                            child: const Icon(Icons.person, color: Colors.white),
+                          ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    _otroUsuario!.username ?? 'Sin nombre',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Sarah Connor',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'En línea',
-                  style: TextStyle(
-                    color: Colors.white54,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: mensajes.length,
+              itemCount: _mensajes.length,
               itemBuilder: (context, index) {
-                final mensaje = mensajes[index];
-                final esMio = mensaje['esMio'] as bool;
+                final mensaje = _mensajes[index];
+                final esMio = mensaje.usersId == _myUserId;
+
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Row(
@@ -119,7 +162,7 @@ class _ChatDetailViewState extends State<ChatDetailView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              mensaje['texto'] as String,
+                              mensaje.texto ?? '',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -127,7 +170,7 @@ class _ChatDetailViewState extends State<ChatDetailView> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              mensaje['hora'] as String,
+                              '${mensaje.createdAt.hour.toString().padLeft(2, '0')}:${mensaje.createdAt.minute.toString().padLeft(2, '0')}',
                               style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 12,
@@ -144,13 +187,12 @@ class _ChatDetailViewState extends State<ChatDetailView> {
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: Color(0xFF232120),
-            ),
+            decoration: const BoxDecoration(color: Color(0xFF232120)),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
+                    controller: _controller,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: 'Escribe un mensaje...',
@@ -181,10 +223,22 @@ class _ChatDetailViewState extends State<ChatDetailView> {
                     ),
                     borderRadius: BorderRadius.circular(25),
                   ),
-                  child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white),
-                    onPressed: () {},
-                  ),
+                  child: _enviando
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        )
+                      : IconButton(
+                          icon: const Icon(Icons.send, color: Colors.white),
+                          onPressed: _enviarMensaje,
+                        ),
                 ),
               ],
             ),

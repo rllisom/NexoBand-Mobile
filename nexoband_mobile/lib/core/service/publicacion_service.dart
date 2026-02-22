@@ -6,7 +6,7 @@ import 'package:nexoband_mobile/config/api_base_url.dart';
 import 'package:nexoband_mobile/config/guardar_token.dart';
 import 'package:nexoband_mobile/core/dto/publicacion_request.dart';
 import 'package:nexoband_mobile/core/interface/publicacion_interface.dart';
-import 'package:nexoband_mobile/core/model/publicacion_list_response.dart';
+import 'package:nexoband_mobile/core/model/publicacion_response.dart';
 
 
 class PublicacionService implements PublicacionInterface{
@@ -23,8 +23,8 @@ class PublicacionService implements PublicacionInterface{
       );
 
       if(response.statusCode >= 200 && response.statusCode < 300){
-        final publicacionesResponse = PublicacionListResponse.fromJson(jsonDecode(response.body));
-        return publicacionesResponse.publicaciones;
+        final publicacionesResponse = Publicacion.fromJson(jsonDecode(response.body));
+        return publicacionesResponse != null ? [publicacionesResponse] : [];
       }
       else{
         throw Exception('Error al listar publicaciones: ${response.statusCode} - ${response.reasonPhrase}');

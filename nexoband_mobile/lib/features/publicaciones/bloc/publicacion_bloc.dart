@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 import 'package:nexoband_mobile/core/dto/publicacion_request.dart';
-import 'package:nexoband_mobile/core/model/publicacion_list_response.dart';
+import 'package:nexoband_mobile/core/model/publicacion_response.dart';
 import 'package:nexoband_mobile/core/service/publicacion_service.dart';
 
 part 'publicacion_event.dart';

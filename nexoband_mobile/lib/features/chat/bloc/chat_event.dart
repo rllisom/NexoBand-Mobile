@@ -11,8 +11,8 @@ final class BuscarChat extends ChatEvent {
 }
 
 final class CargarChat extends ChatEvent {
-  final int chatId;
-  CargarChat(this.chatId);
+  final ChatResponse chat;
+  CargarChat(this.chat);
 }
 
 final class EnviarMensaje extends ChatEvent {
