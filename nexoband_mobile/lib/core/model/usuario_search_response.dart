@@ -21,14 +21,14 @@ class UsuarioSearchResponse {
 
   factory UsuarioSearchResponse.fromJson(Map<String, dynamic> json) {
     return UsuarioSearchResponse(
-      id: json['id'],
-      nombre: json['nombre'],
-      apellidos: json['apellidos'],
-      username: json['username'],
-      imgPerfil: json['img_perfil'],
-      descripcion: json['descripcion'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      apellidos: json['apellidos'] as String? ?? '',
+      username: json['username'] as String? ?? '',
+      imgPerfil: json['img_perfil'] as String?,
+      descripcion: json['descripcion'] as String?,
       instrumentos: List<Map<String, dynamic>>.from(json['instrumentos'] ?? []),
-      seguidoresCount: json['seguidores_count'] ?? 0,
+      seguidoresCount: (json['seguidores_count'] as num?)?.toInt() ?? 0,
     );
   }
 }

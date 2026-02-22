@@ -48,36 +48,36 @@ class UsuarioResponse {
 
   factory UsuarioResponse.fromJson(Map<String, dynamic> json) {
     return UsuarioResponse(
-      id: json['id'],
-      nombre: json['nombre'],
-      apellidos: json['apellidos'],
-      username: json['username'],
-      email: json['email'],
-      imgPerfil: json['img_perfil'],
-      descripcion: json['descripcion'],
-      telefono: json['telefono'],
-      direccion: json['direccion'],
-      provincia: json['provincia'],
-      nacionalidad: json['nacionalidad'],
-      rol: json['rol'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      apellidos: json['apellidos'] as String? ?? '',
+      username: json['username'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      imgPerfil: json['img_perfil'] as String?,
+      descripcion: json['descripcion'] as String?,
+      telefono: json['telefono'] as String?,
+      direccion: json['direccion'] as String?,
+      provincia: json['provincia'] as String?,
+      nacionalidad: json['nacionalidad'] as String?,
+      rol: json['rol'] as String? ?? '',
       instrumentos: (json['instrumentos'] as List? ?? [])
-          .map((i) => InstrumentoResponse.fromJson(i))
+          .map((i) => InstrumentoResponse.fromJson(i as Map<String, dynamic>))
           .toList(),
       publicaciones: (json['publicaciones'] as List? ?? [])
-          .map((p) => Publicacion.fromJson(p))
+          .map((p) => Publicacion.fromJson(p as Map<String, dynamic>))
           .toList(),
       bandas: (json['bandas'] as List? ?? [])
-          .map((b) => BandaEnUsuarioResponse.fromJson(b))
+          .map((b) => BandaEnUsuarioResponse.fromJson(b as Map<String, dynamic>))
           .toList(),
-      seguidores: (json['seguidores'] as List? ?? [])   
-          .map((s) => SeguidorResponse.fromJson(s))
+      seguidores: (json['seguidores'] as List? ?? [])
+          .map((s) => SeguidorResponse.fromJson(s as Map<String, dynamic>))
           .toList(),
-      seguidos: (json['seguidos'] as List? ?? [])       
-          .map((s) => SeguidorResponse.fromJson(s))
+      seguidos: (json['seguidos'] as List? ?? [])
+          .map((s) => SeguidorResponse.fromJson(s as Map<String, dynamic>))
           .toList(),
-      seguidoresCount: json['seguidores_count'] ?? 0,
-      seguidosCount: json['seguidos_count'] ?? 0,
-      bandasSeguidasCount: json['bandas_seguidas_count'] ?? 0,
+      seguidoresCount: (json['seguidores_count'] as num?)?.toInt() ?? 0,
+      seguidosCount: (json['seguidos_count'] as num?)?.toInt() ?? 0,
+      bandasSeguidasCount: (json['bandas_seguidas_count'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -97,10 +97,10 @@ class InstrumentoResponse {
 
   factory InstrumentoResponse.fromJson(Map<String, dynamic> json) {
     return InstrumentoResponse(
-      id: json['id'],
-      nombre: json['nombre'],
-      nivel: json['nivel'],
-      experiencia: json['experiencia'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      nivel: json['nivel'] as String?,
+      experiencia: json['experiencia']?.toString(),
     );
   }
 }
@@ -124,11 +124,11 @@ class SeguidorResponse {
 
   factory SeguidorResponse.fromJson(Map<String, dynamic> json) {
     return SeguidorResponse(
-      id: json['id'],
-      nombre: json['nombre'],
-      apellidos: json['apellidos'],
-      username: json['username'],
-      imgPerfil: json['img_perfil'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      apellidos: json['apellidos'] as String? ?? '',
+      username: json['username'] as String? ?? '',
+      imgPerfil: json['img_perfil'] as String?,
     );
   }
 }

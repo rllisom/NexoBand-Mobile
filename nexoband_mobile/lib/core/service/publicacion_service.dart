@@ -23,8 +23,27 @@ class PublicacionService implements PublicacionInterface{
       );
 
       if(response.statusCode >= 200 && response.statusCode < 300){
-        final publicacionesResponse = Publicacion.fromJson(jsonDecode(response.body));
-        return publicacionesResponse != null ? [publicacionesResponse] : [];
+        // DEBUG: ver qué devuelve realmente la API
+        print('[PublicacionService] body: ${response.body}');
+        final decoded = jsonDecode(response.body);
+        List<dynamic> items;
+        if (decoded is List) {
+          items = decoded;
+        } else if (decoded is Map<String, dynamic>) {
+          // Soporta {"data": [...]} o {"publicaciones": [...]}
+          final inner = decoded['data'] ?? decoded['publicaciones'];
+          if (inner is List) {
+            items = inner;
+          } else {
+            // Es un objeto único
+            return [Publicacion.fromJson(decoded)];
+          }
+        } else {
+          return [];
+        }
+        return items
+            .map((item) => Publicacion.fromJson(item as Map<String, dynamic>))
+            .toList();
       }
       else{
         throw Exception('Error al listar publicaciones: ${response.statusCode} - ${response.reasonPhrase}');

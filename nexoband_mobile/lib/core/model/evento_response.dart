@@ -27,19 +27,19 @@ class EventoResponse {
 
   factory EventoResponse.fromJson(Map<String, dynamic> json) {
     return EventoResponse(
-      id: json['id'],
-      nombre: json['nombre'],
-      fecha: json['fecha'],
-      lugar: json['lugar'],
-      coordenadas: json['coordenadas'],
-      descripcion: json['descripcion'],
-      aforo: json['aforo'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      fecha: json['fecha'] as String? ?? '',
+      lugar: json['lugar'] as String? ?? '',
+      coordenadas: json['coordenadas'] as String?,
+      descripcion: json['descripcion'] as String?,
+      aforo: (json['aforo'] as num?)?.toInt(),
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : DateTime.now(),
+      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : DateTime.now(),
       bandas: (json['bandas'] as List?)
-              ?.map((b) => BandaEvento.fromJson(b))
+              ?.map((b) => BandaEvento.fromJson(b as Map<String, dynamic>))
               .toList() ?? [],
-      asistentesCount: json['asistentes_count'] ?? 0,
+      asistentesCount: (json['asistentes_count'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -61,9 +61,9 @@ class BandaEvento {
 
   factory BandaEvento.fromJson(Map<String, dynamic> json) {
     return BandaEvento(
-      id: json['id'],
-      nombre: json['nombre'],
-      imgPerfil: json['img_perfil'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      imgPerfil: json['img_perfil'] as String?,
     );
   }
 }

@@ -23,17 +23,17 @@ class ChatResponse {
 
   factory ChatResponse.fromJson(Map<String, dynamic> json) {
     return ChatResponse(
-      id: json['id'],
-      nombre: json['nombre'],
-      usuario1Id: json['usuario1_id'],
-      usuario2Id: json['usuario2_id'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String?,
+      usuario1Id: (json['usuario1_id'] as num?)?.toInt() ?? 0,
+      usuario2Id: (json['usuario2_id'] as num?)?.toInt() ?? 0,
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : DateTime.now(),
+      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : DateTime.now(),
       mensajes: (json['mensajes'] as List?)
-          ?.map((m) => Mensaje.fromJson(m))
+          ?.map((m) => Mensaje.fromJson(m as Map<String, dynamic>))
           .toList() ?? [],
-      usuario1: Usuario.fromJson(json['usuario1']),
-      usuario2: Usuario.fromJson(json['usuario2']),
+      usuario1: json['usuario1'] != null ? Usuario.fromJson(json['usuario1'] as Map<String, dynamic>) : Usuario(id: 0),
+      usuario2: json['usuario2'] != null ? Usuario.fromJson(json['usuario2'] as Map<String, dynamic>) : Usuario(id: 0),
     );
   }
 
@@ -61,12 +61,12 @@ class Mensaje {
 
   factory Mensaje.fromJson(Map<String, dynamic> json) {
     return Mensaje(
-      id: json['id'],
-      texto: json['texto'],
-      chatsId: json['chats_id'],
-      usersId: json['users_id'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      texto: json['texto'] as String?,
+      chatsId: (json['chats_id'] as num?)?.toInt() ?? 0,
+      usersId: (json['users_id'] as num?)?.toInt() ?? 0,
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : DateTime.now(),
+      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : DateTime.now(),
     );
   }
 }
@@ -84,9 +84,9 @@ class Usuario {
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
     return Usuario(
-      id: json['id'],
-      username: json['username'],
-      imgPerfil: json['img_perfil'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      username: json['username'] as String?,
+      imgPerfil: json['img_perfil'] as String?,
     );
   }
 }

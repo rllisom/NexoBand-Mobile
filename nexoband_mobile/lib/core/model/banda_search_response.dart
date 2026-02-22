@@ -17,12 +17,12 @@ class BandaSearchResponse {
 
   factory BandaSearchResponse.fromJson(Map<String, dynamic> json) {
     return BandaSearchResponse(
-      id: json['id'],
-      nombre: json['nombre'],
-      imgPerfil: json['img_perfil'],
-      genero: json['genero'],
-      descripcion: json['descripcion'],
-      seguidoresCount: json['seguidores_count'] ?? 0,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      imgPerfil: json['img_perfil'] as String?,
+      genero: json['genero'] as String?,
+      descripcion: json['descripcion'] as String?,
+      seguidoresCount: (json['seguidores_count'] as num?)?.toInt() ?? 0,
     );
   }
 }

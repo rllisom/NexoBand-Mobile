@@ -64,192 +64,194 @@ class _LoginPageViewState extends State<LoginPageView> {
           }
         },
         child: Scaffold(
-          body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Colors.white,
-            child: BlocBuilder<LoginPageBloc, LoginPageState>(
-              builder: (context, state) {
-                final isLoading = state is LoginPageLoading;
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      SizedBox(height: 200),
-                      Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFFF13B57), Color(0xFFFC7E39)],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.music_note,
-                              size: 60,
-                              color: Colors.white,
+          body: SingleChildScrollView(
+            child: Container(
+              width: double.infinity,
+              height: MediaQuery.of(context).size.height,
+              color: Colors.white,
+              child: BlocBuilder<LoginPageBloc, LoginPageState>(
+                builder: (context, state) {
+                  final isLoading = state is LoginPageLoading;
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        SizedBox(height: MediaQuery.of(context).padding.top + 120),
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Color(0xFFF13B57), Color(0xFFFC7E39)],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
                             ),
-                            Text(
-                              "NexoBand",
-                              style: GoogleFonts.chicle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.music_note,
+                                size: 60,
                                 color: Colors.white,
                               ),
-                            ),
-                          ],
+                              Text(
+                                "NexoBand",
+                                style: GoogleFonts.chicle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 40),
-                      Form(
-                        key: _formKey,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                          child: Column(
+                        SizedBox(height: 40),
+                        Form(
+                          key: _formKey,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                            child: Column(
+                              children: [
+                                TextFormField(
+                                  controller: emailController,
+                                  keyboardType: TextInputType.emailAddress,
+                                  decoration: InputDecoration(
+                                    labelText: 'Email:',
+                                    labelStyle: TextStyle(
+                                      color: Color(0xFFFC7E39),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(width: 4),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'El email es requerido';
+                                    }
+                                    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                                    if (!emailRegex.hasMatch(value)) {
+                                      return 'Ingresa un email válido';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                SizedBox(height: 40),
+                                TextFormField(
+                                  controller: passwordController,
+                                  obscureText: true,
+                                  decoration: InputDecoration(
+                                    labelText: 'Contraseña:',
+                                    labelStyle: TextStyle(
+                                      color: Color(0xFFFC7E39),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(width: 4),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'La contraseña es requerida';
+                                    }
+                                    if (value.length < 6) {
+                                      return 'La contraseña debe tener al menos 6 caracteres';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                SizedBox(height: 5),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 150),
+                                  child: Text(
+                                    "¿Olvidaste la contraseña?",
+                                    style: TextStyle(
+                                      color: Color(0xFFFC7E39),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        GestureDetector(
+                          onTap: isLoading ? null : _iniciarSesion,
+                          child: Container(
+                            width: 330,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [Color(0xFFF13B57), Color(0xFFFC7E39)],
+                              ),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Center(
+                              child: isLoading
+                                  ? SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Text(
+                                      "Iniciar sesión",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 30),
+                        Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              TextFormField(
-                                controller: emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                decoration: InputDecoration(
-                                  labelText: 'Email:',
-                                  labelStyle: TextStyle(
-                                    color: Color(0xFFFC7E39),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(width: 4),
-                                  ),
+                              Text(
+                                "Si no tienes cuenta,",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color.fromARGB(255, 94, 94, 94),
                                 ),
-                                validator: (value) {
-                                  if (value == null || value.trim().isEmpty) {
-                                    return 'El email es requerido';
-                                  }
-                                  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-                                  if (!emailRegex.hasMatch(value)) {
-                                    return 'Ingresa un email válido';
-                                  }
-                                  return null;
-                                },
                               ),
-                              SizedBox(height: 40),
-                              TextFormField(
-                                controller: passwordController,
-                                obscureText: true,
-                                decoration: InputDecoration(
-                                  labelText: 'Contraseña:',
-                                  labelStyle: TextStyle(
-                                    color: Color(0xFFFC7E39),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide(width: 4),
-                                  ),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'La contraseña es requerida';
-                                  }
-                                  if (value.length < 6) {
-                                    return 'La contraseña debe tener al menos 6 caracteres';
-                                  }
-                                  return null;
+                              ShaderMask(
+                                shaderCallback: (Rect bounds) {
+                                  return LinearGradient(
+                                    colors: [
+                                      Color(0xFFF13B57),
+                                      Color(0xFFFC7E39),
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ).createShader(bounds);
                                 },
-                              ),
-                              SizedBox(height: 5),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 150),
                                 child: Text(
-                                  "¿Olvidaste la contraseña?",
+                                  " regístrate aquí",
                                   style: TextStyle(
-                                    color: Color(0xFFFC7E39),
+                                    fontSize: 14,
                                     fontWeight: FontWeight.bold,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      SizedBox(height: 20),
-                      GestureDetector(
-                        onTap: isLoading ? null : _iniciarSesion,
-                        child: Container(
-                          width: 330,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [Color(0xFFF13B57), Color(0xFFFC7E39)],
-                            ),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Center(
-                            child: isLoading
-                                ? SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : Text(
-                                    "Iniciar sesión",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 30),
-                      Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Si no tienes cuenta,",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: const Color.fromARGB(255, 94, 94, 94),
-                              ),
-                            ),
-                            ShaderMask(
-                              shaderCallback: (Rect bounds) {
-                                return LinearGradient(
-                                  colors: [
-                                    Color(0xFFF13B57),
-                                    Color(0xFFFC7E39),
-                                  ],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                ).createShader(bounds);
-                              },
-                              child: Text(
-                                " regístrate aquí",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),

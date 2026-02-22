@@ -77,30 +77,30 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] as int,
-      nombre: json['nombre'] as String,
-      apellidos: json['apellidos'] as String,
-      username: json['username'] as String,
-      email: json['email'] as String,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      apellidos: json['apellidos'] as String? ?? '',
+      username: json['username'] as String? ?? '',
+      email: json['email'] as String? ?? '',
       imgPerfil: json['img_perfil'] as String?,
       descripcion: json['descripcion'] as String?,
       telefono: json['telefono'] as String?,
       direccion: json['direccion'] as String?,
       provincia: json['provincia'] as String?,
       nacionalidad: json['nacionalidad'] as String?,
-      rol: json['rol'] as String,
-      estado: json['estado'] as String,
+      rol: json['rol'] as String? ?? '',
+      estado: json['estado'] as String? ?? '',
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
-      instrumentos: (json['instrumentos'] as List?)?.map((i) => Instrumento.fromJson(i)).toList() ?? [],
-      bandas: (json['bandas'] as List?)?.map((b) => Banda.fromJson(b)).toList() ?? [],
-      publicacionesCount: json['publicaciones_count'] as int? ?? 0,
-      comentariosCount: json['comentarios_count'] as int? ?? 0,
-      eventosCount: json['eventos_count'] as int? ?? 0,
-      seguidoresCount: json['seguidores_count'] as int? ?? 0,
-      seguidosCount: json['seguidos_count'] as int? ?? 0,
-      bandasSeguidas: json['bandas_seguidas_count'] as int? ?? 0,
-      likesCount: json['likes_count'] as int? ?? 0,
+      instrumentos: (json['instrumentos'] as List?)?.map((i) => Instrumento.fromJson(i as Map<String, dynamic>)).toList() ?? [],
+      bandas: (json['bandas'] as List?)?.map((b) => Banda.fromJson(b as Map<String, dynamic>)).toList() ?? [],
+      publicacionesCount: (json['publicaciones_count'] as num?)?.toInt() ?? 0,
+      comentariosCount: (json['comentarios_count'] as num?)?.toInt() ?? 0,
+      eventosCount: (json['eventos_count'] as num?)?.toInt() ?? 0,
+      seguidoresCount: (json['seguidores_count'] as num?)?.toInt() ?? 0,
+      seguidosCount: (json['seguidos_count'] as num?)?.toInt() ?? 0,
+      bandasSeguidas: (json['bandas_seguidas_count'] as num?)?.toInt() ?? 0,
+      likesCount: (json['likes_count'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -153,12 +153,12 @@ class Instrumento {
 
   factory Instrumento.fromJson(Map<String, dynamic> json) {
     return Instrumento(
-      id: json['id'] as int,
-      nombre: json['nombre'] as String,
-      nivel: json['nivel'] as String,
-      experiencia: json['experiencia'] as int,
-      descripcion: json['descripcion'] as String,
-      generos: json['generos'] as String,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      nivel: json['nivel'] as String? ?? '',
+      experiencia: (json['experiencia'] as num?)?.toInt() ?? 0,
+      descripcion: json['descripcion'] as String? ?? '',
+      generos: json['generos'] as String? ?? '',
     );
   }
 
@@ -187,9 +187,9 @@ class Banda {
 
   factory Banda.fromJson(Map<String, dynamic> json) {
     return Banda(
-      id: json['id'] as int,
-      nombre: json['nombre'] as String,
-      rol: json['rol'] as String,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      rol: json['rol'] as String? ?? '',
     );
   }
 

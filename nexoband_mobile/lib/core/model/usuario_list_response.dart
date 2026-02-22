@@ -23,15 +23,15 @@ class UsuarioListResponse {
 
   factory UsuarioListResponse.fromJson(Map<String, dynamic> json) {
     return UsuarioListResponse(
-      id: json['id'],
-      nombre: json['nombre'],
-      apellidos: json['apellidos'],
-      username: json['username'],
-      imgPerfil: json['img_perfil'],
-      provincia: json['provincia'],
-      rol: json['rol'],
-      seguidoresCount: json['seguidores_count'] ?? 0,
-      seguidosCount: json['seguidos_count'] ?? 0,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      apellidos: json['apellidos'] as String? ?? '',
+      username: json['username'] as String? ?? '',
+      imgPerfil: json['img_perfil'] as String?,
+      provincia: json['provincia'] as String?,
+      rol: json['rol'] as String? ?? '',
+      seguidoresCount: (json['seguidores_count'] as num?)?.toInt() ?? 0,
+      seguidosCount: (json['seguidos_count'] as num?)?.toInt() ?? 0,
     );
   }
 }

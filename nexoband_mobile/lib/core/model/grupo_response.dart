@@ -13,10 +13,10 @@ class GrupoResponse {
 
   factory GrupoResponse.fromJson(Map<String, dynamic> json) {
     return GrupoResponse(
-      id: json['id'],
-      nombre: json['nombre'],
-      categoria: json['categoria'],
-      icono: json['icono'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      categoria: json['categoria'] as String? ?? '',
+      icono: json['icono'] as String?,
     );
   }
 }

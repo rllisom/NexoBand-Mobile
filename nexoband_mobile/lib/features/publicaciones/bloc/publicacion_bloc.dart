@@ -40,21 +40,5 @@ class PublicacionBloc extends Bloc<PublicacionEvent, PublicacionState> {
         emit(PublicacionEliminacionError(e.toString()));
       }
     });
-
-    on<DarMeGustaPublicacion>((event, emit) {
-      try {
-        emit(DarMeGustaState(event.publicacionId, event.usuarioId));
-      } catch (e) {
-        emit(MeGustaErrorState('Error al dar me gusta: ${e.toString()}'));
-      }
-    });
-
-    on<QuitarMeGustaPublicacion>((event, emit) {
-      try {
-        emit(QuitarMeGustaState(event.publicacionId, event.usuarioId));
-      } catch (e) {
-        emit(MeGustaErrorState('Error al quitar me gusta: ${e.toString()}'));
-      }
-    });
   }
 }

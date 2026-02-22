@@ -19,13 +19,13 @@ class BandaEnUsuarioResponse {
 
   factory BandaEnUsuarioResponse.fromJson(Map<String, dynamic> json) {
     return BandaEnUsuarioResponse(
-      id: json['id'],
-      nombre: json['nombre'],
-      descripcion: json['descripcion'] ?? '',
-      imagen: json['imagen'],
-      rol: json['rol'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      nombre: json['nombre'] as String? ?? '',
+      descripcion: json['descripcion'] as String? ?? '',
+      imagen: json['imagen'] as String?,
+      rol: json['rol'] as String?,
       grupos: (json['grupos'] as List<dynamic>? ?? [])
-          .map((g) => GrupoResponse.fromJson(g))
+          .map((g) => GrupoResponse.fromJson(g as Map<String, dynamic>))
           .toList(),
     );
   }

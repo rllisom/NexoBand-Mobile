@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nexoband_mobile/features/home/ui/home_view.dart';
+import 'package:nexoband_mobile/features/login/ui/login_page_view.dart';
+
 
 
 void main() {
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
       
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const HomeView(),
+      home: const LoginPageView(),
     );
   }
 }

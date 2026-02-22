@@ -56,8 +56,7 @@ class _SearchViewState extends State<SearchView> {
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.of(context)
-                .pushNamedAndRemoveUntil('/home', (route) => false),
+            onPressed: () => Navigator.pop(context),
           ),
           title: const Text('Buscar',
               style: TextStyle(color: Colors.white)),

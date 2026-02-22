@@ -17,11 +17,11 @@ class BandaMiembroResponse {
 
   factory BandaMiembroResponse.fromJson(Map<String, dynamic> json) {
     return BandaMiembroResponse(
-      id: json['id'],
-      usersId: json['users_id'],
-      bandasId: json['bandas_id'],
-      rol: json['rol'],
-      user: UsuarioResponse.fromJson(json['user']),
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      usersId: (json['users_id'] as num?)?.toInt() ?? 0,
+      bandasId: (json['bandas_id'] as num?)?.toInt() ?? 0,
+      rol: json['rol'] as String?,
+      user: UsuarioResponse.fromJson(json['user'] as Map<String, dynamic>),
     );
   }
 }
