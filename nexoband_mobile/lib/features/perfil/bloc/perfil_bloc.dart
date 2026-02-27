@@ -8,14 +8,53 @@ part 'perfil_state.dart';
 
 class PerfilBloc extends Bloc<PerfilEvent, PerfilState> {
   final PerfilService perfilService;
+
   PerfilBloc(this.perfilService) : super(PerfilInitial()) {
-    on<CargarPerfil>((event, emit) {
+    
+
+    on<CargarPerfil>((event, emit) async {
       emit(PerfilCargando());
-      perfilService.cargarPerfil().then((usuario) {
+      try {
+        final usuario = await perfilService.cargarPerfil();
         emit(PerfilCargado(usuario));
-      }).catchError((error) {
-        emit(PerfilError(error.toString()));
-      });
+      } catch (e) {
+        emit(PerfilError(e.toString()));
+      }
     });
+
+
+    on<RefrescarPerfil>((event, emit) async {
+      emit(PerfilCargando());
+      try {
+        final usuario = await perfilService.cargarPerfil();
+        emit(PerfilCargado(usuario));
+      } catch (e) {
+        emit(PerfilError(e.toString()));
+      }
+    });
+
+
+    on<EditarImagenPerfil>((event, emit) async {
+      emit(ImagenPerfilCargando());
+      try {
+        // 1. Sube imagen
+        final nuevaUrl = await perfilService.editarImagenPerfil(
+          event.usuarioId,
+          event.imagePath,
+        );
+        
+        if (nuevaUrl != null) {
+          emit(ImagenPerfilActualizada(nuevaUrl)); 
+        }
+
+        // 2. Recarga perfil completo (garantiza consistencia)
+        final usuarioActualizado = await perfilService.cargarPerfil();
+        emit(PerfilCargado(usuarioActualizado)); // 👈 Estado final
+        
+      } catch (e) {
+        emit(ImagenPerfilError(e.toString()));
+      }
+    });
+
   }
 }

@@ -7,7 +7,7 @@ class UsuarioResponse {
   final String apellidos;
   final String username;
   final String email;
-  final String? imgPerfil;
+  final String? imgPerfil;  
   final String? descripcion;
   final String? telefono;
   final String? direccion;
@@ -47,13 +47,28 @@ class UsuarioResponse {
   });
 
   factory UsuarioResponse.fromJson(Map<String, dynamic> json) {
+    String? imgPerfilUrl;
+
+    if (json['img_perfil'] != null) {
+      final raw = json['img_perfil'] as String;
+      // Siempre extraemos solo el nombre de archivo para construir
+      // la URL canónica, ya que el backend puede devolver:
+      //   - path relativo:  'perfiles/filename.jpg'
+      //   - URL completa:   'http://...storage/usuarios/perfiles/filename.jpg'
+      // En ambos casos el archivo vive en storage/usuarios/.
+      final filename = raw.split('/').last;
+      if (filename.isNotEmpty) {
+        imgPerfilUrl = 'http://10.0.2.2:8000/storage/perfiles/$filename';
+      }
+    }
+
     return UsuarioResponse(
       id: (json['id'] as num?)?.toInt() ?? 0,
       nombre: json['nombre'] as String? ?? '',
       apellidos: json['apellidos'] as String? ?? '',
       username: json['username'] as String? ?? '',
       email: json['email'] as String? ?? '',
-      imgPerfil: json['img_perfil'] as String?,
+      imgPerfil: imgPerfilUrl,  
       descripcion: json['descripcion'] as String?,
       telefono: json['telefono'] as String?,
       direccion: json['direccion'] as String?,
@@ -105,14 +120,12 @@ class InstrumentoResponse {
   }
 }
 
-// PublicacionResponse eliminada — usar Publicacion de publicacion_response.dart
-
 class SeguidorResponse {
   final int id;
   final String nombre;
   final String apellidos;
   final String username;
-  final String? imgPerfil;
+  final String? imgPerfil;  
 
   SeguidorResponse({
     required this.id,
@@ -123,12 +136,22 @@ class SeguidorResponse {
   });
 
   factory SeguidorResponse.fromJson(Map<String, dynamic> json) {
+    String? imgPerfilUrl;
+
+    if (json['img_perfil'] != null) {
+      final raw = json['img_perfil'] as String;
+      final filename = raw.split('/').last;
+      if (filename.isNotEmpty) {
+        imgPerfilUrl = 'http://10.0.2.2:8000/storage/perfiles/$filename';
+      }
+    }
+
     return SeguidorResponse(
       id: (json['id'] as num?)?.toInt() ?? 0,
       nombre: json['nombre'] as String? ?? '',
       apellidos: json['apellidos'] as String? ?? '',
       username: json['username'] as String? ?? '',
-      imgPerfil: json['img_perfil'] as String?,
+      imgPerfil: imgPerfilUrl,
     );
   }
 }

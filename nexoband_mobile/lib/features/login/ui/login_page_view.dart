@@ -5,6 +5,7 @@ import 'package:nexoband_mobile/core/dto/login_request.dart';
 import 'package:nexoband_mobile/core/service/auth_session_service.dart';
 import 'package:nexoband_mobile/features/home/ui/home_view.dart';
 import 'package:nexoband_mobile/features/login/bloc/login_page_bloc.dart';
+import 'package:nexoband_mobile/features/registro/ui/registro_page.dart';
 
 class LoginPageView extends StatefulWidget {
   const LoginPageView({super.key});
@@ -68,7 +69,7 @@ class _LoginPageViewState extends State<LoginPageView> {
             child: Container(
               width: double.infinity,
               height: MediaQuery.of(context).size.height,
-              color: Colors.white,
+              color: Color(0xFF232120),
               child: BlocBuilder<LoginPageBloc, LoginPageState>(
                 builder: (context, state) {
                   final isLoading = state is LoginPageLoading;
@@ -117,6 +118,7 @@ class _LoginPageViewState extends State<LoginPageView> {
                                 TextFormField(
                                   controller: emailController,
                                   keyboardType: TextInputType.emailAddress,
+                                  style: TextStyle(color: Colors.white),
                                   decoration: InputDecoration(
                                     labelText: 'Email:',
                                     labelStyle: TextStyle(
@@ -125,7 +127,15 @@ class _LoginPageViewState extends State<LoginPageView> {
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      borderSide: BorderSide(width: 4),
+                                      borderSide: BorderSide(width: 2, color: Colors.white),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(width: 2, color: Colors.white),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(width: 2, color: Colors.white),
                                     ),
                                   ),
                                   validator: (value) {
@@ -143,6 +153,7 @@ class _LoginPageViewState extends State<LoginPageView> {
                                 TextFormField(
                                   controller: passwordController,
                                   obscureText: true,
+                                  style: TextStyle(color: Colors.white),
                                   decoration: InputDecoration(
                                     labelText: 'Contraseña:',
                                     labelStyle: TextStyle(
@@ -151,7 +162,15 @@ class _LoginPageViewState extends State<LoginPageView> {
                                     ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(20),
-                                      borderSide: BorderSide(width: 4),
+                                      borderSide: BorderSide(width: 2, color: Colors.white),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(width: 2, color: Colors.white),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide(width: 2, color: Colors.white),
                                     ),
                                   ),
                                   validator: (value) {
@@ -165,16 +184,6 @@ class _LoginPageViewState extends State<LoginPageView> {
                                   },
                                 ),
                                 SizedBox(height: 5),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 150),
-                                  child: Text(
-                                    "¿Olvidaste la contraseña?",
-                                    style: TextStyle(
-                                      color: Color(0xFFFC7E39),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
                               ],
                             ),
                           ),
@@ -221,26 +230,32 @@ class _LoginPageViewState extends State<LoginPageView> {
                                 "Si no tienes cuenta,",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: const Color.fromARGB(255, 94, 94, 94),
+                                  color: const Color.fromARGB(255, 202, 201, 201),
                                 ),
                               ),
-                              ShaderMask(
-                                shaderCallback: (Rect bounds) {
-                                  return LinearGradient(
-                                    colors: [
-                                      Color(0xFFF13B57),
-                                      Color(0xFFFC7E39),
-                                    ],
-                                    begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
-                                  ).createShader(bounds);
-                                },
-                                child: Text(
-                                  " regístrate aquí",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                              GestureDetector(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const RegisterPageView()),
+                                ),
+                                child: ShaderMask(
+                                  shaderCallback: (Rect bounds) {
+                                    return LinearGradient(
+                                      colors: [
+                                        Color(0xFFF13B57),
+                                        Color(0xFFFC7E39),
+                                      ],
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                    ).createShader(bounds);
+                                  },
+                                  child: Text(
+                                    " regístrate aquí",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
                               ),

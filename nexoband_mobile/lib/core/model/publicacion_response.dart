@@ -22,8 +22,7 @@ class Publicacion {
   });
 
   factory Publicacion.fromJson(Map<String, dynamic> json) {
-    // DEBUG: ver exactamente qué campos llegan
-    print('[Publicacion.fromJson] keys: ${json.keys.toList()}');
+
     return Publicacion(
       id:         (json['id'] as num?)?.toInt() ?? 0,
       titulo:     json['titulo'] as String?,
@@ -60,12 +59,20 @@ class User {
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
+    String? imgPerfilUrl;
+    if (json['img_perfil'] != null) {
+      final raw = json['img_perfil'] as String;
+      final filename = raw.split('/').last;
+      if (filename.isNotEmpty) {
+        imgPerfilUrl = 'http://10.0.2.2:8000/storage/perfiles/$filename';
+      }
+    }
     return User(
       id:        (json['id'] as num?)?.toInt() ?? 0,
       nombre:    json['nombre']    ?? '',
       apellidos: json['apellidos'] ?? '',
       username:  json['username']  ?? '',
-      imgPerfil: json['img_perfil'] as String?,
+      imgPerfil: imgPerfilUrl,
     );
   }
 }
@@ -106,11 +113,21 @@ class Multimedia {
   });
 
   factory Multimedia.fromJson(Map<String, dynamic> json) {
+    String buildUrl(String? raw) {
+      if (raw == null || raw.isEmpty) return '';
+      if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+      final clean = raw.replaceAll(RegExp(r'^/+'), '');
+      return 'http://10.0.2.2:8000/storage/$clean';
+    }
+
+    final rawUrl     = json['url']     as String?;
+    final rawArchivo = json['archivo'] as String?;
+
     return Multimedia(
-      id:      (json['id'] as num?)?.toInt() ?? 0,
-      archivo: json['archivo'] ?? '',
-      tipo:    json['tipo']    ?? '',
-      url:     json['url']     ?? json['archivo'] ?? '',
+      id:        (json['id'] as num?)?.toInt() ?? 0,
+      archivo:   rawArchivo ?? '',
+      tipo:      json['tipo'] ?? '',
+      url:       buildUrl(rawUrl ?? rawArchivo),
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),

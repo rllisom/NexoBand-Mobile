@@ -37,4 +37,18 @@ class PublicacionEliminacionError extends PublicacionState{
   PublicacionEliminacionError(this.mensaje);
 }
 
+class FeedCargando extends PublicacionState {}
+
+class FeedCargado extends PublicacionState {
+  final List<Publicacion> publicaciones;
+  FeedCargado(this.publicaciones);
+}
+
+class FeedVacio extends PublicacionState {}
+
+class FeedCargaError extends PublicacionState {
+  final String mensaje;
+  FeedCargaError(this.mensaje);
+}
+
 

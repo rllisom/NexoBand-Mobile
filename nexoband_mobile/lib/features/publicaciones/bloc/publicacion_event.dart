@@ -8,7 +8,8 @@ final class CargarPublicacionesUsuario extends PublicacionEvent {}
 
 final class CrearPublicacion extends PublicacionEvent {
   final PublicacionRequest request;
-  CrearPublicacion(this.request);
+  final XFile? multimedia; 
+  CrearPublicacion(this.request, {this.multimedia});
 }
 
 final class EliminarPublicacion extends PublicacionEvent {
@@ -20,3 +21,5 @@ final class VerDetallePublicacion extends PublicacionEvent {
   final int publicacionId;
   VerDetallePublicacion(this.publicacionId);
 }
+
+final class CargarFeed extends PublicacionEvent {}

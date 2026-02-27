@@ -67,7 +67,7 @@ class _HomeViewState extends State<HomeView> {
             );
           }
           if (state is PublicacionesCargadas) {
-            return PublicacionView(publicaciones: state.publicaciones);
+            return PublicacionView();
           }
           return const Center(child: CircularProgressIndicator());
         },

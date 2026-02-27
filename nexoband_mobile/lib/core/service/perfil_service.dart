@@ -14,10 +14,7 @@ class PerfilService implements PerfilInterface {
 
     final response = await http.get(
       Uri.parse('${ApiBaseUrl.baseUrl}/users/$id'),
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode == 200) {
@@ -32,10 +29,7 @@ class PerfilService implements PerfilInterface {
 
     final response = await http.get(
       Uri.parse('${ApiBaseUrl.baseUrl}/users/$usuarioId'),
-      headers: {
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
     );
 
     if (response.statusCode == 200) {
@@ -43,5 +37,27 @@ class PerfilService implements PerfilInterface {
       return UsuarioResponse.fromJson(json['usuario']);
     }
     throw Exception('Error al cargar el perfil ajeno: ${response.statusCode}');
+  }
+
+  Future<String?> editarImagenPerfil(int usuarioId, String imagePath) async {
+    final token = await GuardarToken.getAuthToken();
+    final uri = Uri.parse(
+      '${ApiBaseUrl.baseUrl}/users/$usuarioId/imagen_perfil',
+    );
+
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..headers['Accept'] = 'application/json'
+      ..files.add(await http.MultipartFile.fromPath('img_perfil', imagePath));
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final body = jsonDecode(response.body);
+      return body['img_perfil'] as String?; 
+    } else {
+      throw Exception('Error al subir imagen: ${response.statusCode}');
+    }
   }
 }

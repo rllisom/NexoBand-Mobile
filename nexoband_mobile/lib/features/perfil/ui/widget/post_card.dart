@@ -28,8 +28,19 @@ class PostCard extends StatelessWidget {
             children: [
               ClipOval(
                 child: imagen != null
-                    ? Image.network(imagen,
-                        width: 40, height: 40, fit: BoxFit.cover)
+                    ? Image.network(
+                        imagen,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 40,
+                          height: 40,
+                          color: Colors.grey[800],
+                          child: const Icon(Icons.person,
+                              color: Colors.white54, size: 20),
+                        ),
+                      )
                     : Container(
                         width: 40,
                         height: 40,
@@ -49,6 +60,12 @@ class PostCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         fontSize: 14),
                   ),
+                  if (publicacion.user?.username != null)
+                    Text(
+                      '@${publicacion.user!.username}',
+                      style: const TextStyle(
+                          color: Color(0xFF9ca3af), fontSize: 12),
+                    ),
                   Text(
                     _timeAgo(publicacion.createdAt),
                     style: const TextStyle(
@@ -80,16 +97,13 @@ class PostCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 12),
-          // Acciones
+          // Acciones — solo comentarios
           Row(
             children: [
-              _ActionButton(icon: Icons.favorite_border, count: 0),
-              const SizedBox(width: 20),
               _ActionButton(
-                  icon: Icons.chat_bubble_outline,
-                  count: publicacion.comentarios.length),
-              const SizedBox(width: 20),
-              _ActionButton(icon: Icons.share_outlined, count: 0),
+                icon: Icons.chat_bubble_outline,
+                count: publicacion.comentarios.length,
+              ),
             ],
           ),
         ],

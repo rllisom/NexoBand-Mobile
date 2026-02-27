@@ -16,3 +16,15 @@ final class PerfilError extends PerfilState {
   final String mensaje;
   PerfilError(this.mensaje);
 }
+
+final class ImagenPerfilCargando extends PerfilState {}
+
+class ImagenPerfilActualizada extends PerfilState {
+  final String nuevaUrl;
+  ImagenPerfilActualizada(this.nuevaUrl);
+}
+
+class ImagenPerfilError extends PerfilState {
+  final String mensaje;
+  ImagenPerfilError(this.mensaje);
+}

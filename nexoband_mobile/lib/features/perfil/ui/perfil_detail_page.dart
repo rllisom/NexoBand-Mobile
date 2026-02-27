@@ -72,6 +72,11 @@ class _PerfilDetailPageState extends State<PerfilDetailPage> {
     return BlocProvider.value(
       value: _perfilBloc,
       child: BlocBuilder<PerfilBloc, PerfilState>(
+        buildWhen: (_, state) =>
+            state is PerfilInitial ||
+            state is PerfilCargando ||
+            state is PerfilCargado ||
+            state is PerfilError,
         builder: (context, state) {
           if (state is PerfilCargando || state is PerfilInitial) {
             return const Center(child: CircularProgressIndicator());
