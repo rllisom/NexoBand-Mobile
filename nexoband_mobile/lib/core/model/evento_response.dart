@@ -1,7 +1,7 @@
 class EventoResponse {
   final int id;
   final String nombre;
-  final String fecha;
+  final DateTime fecha;
   final String lugar;
   final String? coordenadas;
   final String? descripcion;
@@ -9,7 +9,6 @@ class EventoResponse {
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<BandaEvento> bandas;
-  final int asistentesCount;
 
   EventoResponse({
     required this.id,
@@ -22,26 +21,22 @@ class EventoResponse {
     required this.createdAt,
     required this.updatedAt,
     required this.bandas,
-    required this.asistentesCount,
   });
 
-  factory EventoResponse.fromJson(Map<String, dynamic> json) {
-    return EventoResponse(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      nombre: json['nombre'] as String? ?? '',
-      fecha: json['fecha'] as String? ?? '',
-      lugar: json['lugar'] as String? ?? '',
-      coordenadas: json['coordenadas'] as String?,
-      descripcion: json['descripcion'] as String?,
-      aforo: (json['aforo'] as num?)?.toInt(),
-      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : DateTime.now(),
-      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : DateTime.now(),
-      bandas: (json['bandas'] as List?)
-              ?.map((b) => BandaEvento.fromJson(b as Map<String, dynamic>))
-              .toList() ?? [],
-      asistentesCount: (json['asistentes_count'] as num?)?.toInt() ?? 0,
-    );
-  }
+  factory EventoResponse.fromJson(Map<String, dynamic> json) => EventoResponse(
+    id: (json['id'] as num?)?.toInt() ?? 0,
+    nombre: json['nombre'] ?? '',
+    fecha: DateTime.parse(json['fecha']),
+    lugar: json['lugar'] ?? '',
+    coordenadas: json['coordenadas'],
+    descripcion: json['descripcion'],
+    aforo: json['aforo'] as int?,
+    createdAt: DateTime.parse(json['created_at']),
+    updatedAt: DateTime.parse(json['updated_at']),
+    bandas: (json['bandas'] as List?)
+        ?.map((b) => BandaEvento.fromJson(b as Map<String, dynamic>))
+        .toList() ?? [],
+  );
 
   static List<EventoResponse> fromJsonList(List<dynamic> jsonList) {
     return jsonList.map((json) => EventoResponse.fromJson(json)).toList();
@@ -59,11 +54,9 @@ class BandaEvento {
     this.imgPerfil,
   });
 
-  factory BandaEvento.fromJson(Map<String, dynamic> json) {
-    return BandaEvento(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      nombre: json['nombre'] as String? ?? '',
-      imgPerfil: json['img_perfil'] as String?,
-    );
-  }
+  factory BandaEvento.fromJson(Map<String, dynamic> json) => BandaEvento(
+    id: (json['id'] as num?)?.toInt() ?? 0,
+    nombre: json['nombre'] ?? '',
+    imgPerfil: json['img_perfil'],
+  );
 }

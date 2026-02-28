@@ -12,3 +12,8 @@ final class EditarImagenPerfil extends PerfilEvent {
   final String imagePath;
   EditarImagenPerfil(this.usuarioId, this.imagePath);
 }
+
+final class EliminarPublicacion extends PerfilEvent {
+  final int publicacionId;
+  EliminarPublicacion(this.publicacionId);
+}

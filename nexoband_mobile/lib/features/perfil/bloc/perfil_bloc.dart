@@ -56,5 +56,7 @@ class PerfilBloc extends Bloc<PerfilEvent, PerfilState> {
       }
     });
 
+  
+
   }
 }

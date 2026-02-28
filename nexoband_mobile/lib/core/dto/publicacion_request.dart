@@ -14,7 +14,7 @@ class PublicacionRequest {
     this.bandasId,
   });
 
-  // 👈 Para FormData con multimedia
+
   Future<FormData> toFormData({XFile? archivo}) async {
     final formData = FormData.fromMap({
       'titulo': titulo,

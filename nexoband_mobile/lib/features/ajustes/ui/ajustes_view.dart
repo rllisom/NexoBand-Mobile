@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:nexoband_mobile/features/ajustes/ui/ajustes_crear_banda.dart';
+import 'package:nexoband_mobile/features/login/ui/login_page_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AjustesView extends StatefulWidget {
   const AjustesView({super.key});
@@ -60,10 +63,13 @@ class _AjustesViewState extends State<AjustesView> {
               ),
               _buildCard(
                 context,
-                icon: Icons.favorite_border,
-                title: 'Ver me gusta',
-                subtitle: 'Publicaciones que te gustaron',
-                onTap: () => Navigator.pushNamed(context, '/me-gusta'),
+                icon: Icons.library_music,
+                title: 'Crear banda',
+                subtitle: 'Inicia tu propia banda',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AjustesCrearBanda()),
+                ),
               ),
               const SizedBox(height: 24),
               const Text(
@@ -81,7 +87,14 @@ class _AjustesViewState extends State<AjustesView> {
                 title: 'Cerrar sesión',
                 subtitle: 'Salir de tu cuenta',
                 titleColor: Colors.redAccent,
-                onTap: () => Navigator.pushNamed(context, '/logout'),
+                onTap: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  prefs.clear();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginPageView()),
+                  );
+                }
               ),
               const SizedBox(height: 32),
               Center(

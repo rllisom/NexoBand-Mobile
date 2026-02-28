@@ -39,6 +39,8 @@ class PerfilService implements PerfilInterface {
     throw Exception('Error al cargar el perfil ajeno: ${response.statusCode}');
   }
 
+  
+
   Future<String?> editarImagenPerfil(int usuarioId, String imagePath) async {
     final token = await GuardarToken.getAuthToken();
     final uri = Uri.parse(

@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
+import 'package:nexoband_mobile/core/dto/banda_request.dart';
 import 'package:nexoband_mobile/core/model/banda_response.dart';
 import 'package:nexoband_mobile/core/service/banda_service.dart';
 

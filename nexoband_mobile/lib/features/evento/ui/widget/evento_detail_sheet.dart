@@ -4,10 +4,8 @@ import 'package:nexoband_mobile/features/evento/ui/widget/icon_gradient_box.dart
 
 class EventoDetailSheet {
   static void show(BuildContext context, EventoResponse evento) {
-    final fecha = DateTime.tryParse(evento.fecha);
-    final fechaFormateada = fecha != null
-        ? '${_diaSemana(fecha.weekday)}, ${fecha.day} de ${_mes(fecha.month)} de ${fecha.year}'
-        : evento.fecha;
+    final fecha = evento.fecha;
+    final fechaFormateada = '${fecha.day}/${fecha.month}/${fecha.year} ${fecha.hour}:${fecha.minute.toString().padLeft(2, '0')}';
 
     showModalBottomSheet(
       context: context,
@@ -179,42 +177,11 @@ class EventoDetailSheet {
                               fontSize: 14,
                             ),
                           ),
-                          Text(
-                            '${evento.asistentesCount} / ${evento.aforo} asistentes',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                            ),
-                          ),
                         ],
                       ),
                     ],
                   ),
                 ],
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      backgroundColor: const Color(0xFFCC5200),
-                      foregroundColor: Colors.white,
-                      textStyle: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    icon: const Icon(Icons.group),
-                    label: const Text('Confirmar asistencia'),
-                    onPressed: () {
-                      // TODO: conectar con unirseEvento
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ),
                 const SizedBox(height: 16),
               ],
             ),
@@ -222,36 +189,5 @@ class EventoDetailSheet {
         ),
       ),
     );
-  }
-
-  static String _diaSemana(int weekday) {
-    const dias = [
-      'Lunes',
-      'Martes',
-      'Miércoles',
-      'Jueves',
-      'Viernes',
-      'Sábado',
-      'Domingo',
-    ];
-    return dias[weekday - 1];
-  }
-
-  static String _mes(int month) {
-    const meses = [
-      'enero',
-      'febrero',
-      'marzo',
-      'abril',
-      'mayo',
-      'junio',
-      'julio',
-      'agosto',
-      'septiembre',
-      'octubre',
-      'noviembre',
-      'diciembre',
-    ];
-    return meses[month - 1];
   }
 }

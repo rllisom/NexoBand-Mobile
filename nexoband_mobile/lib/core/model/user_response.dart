@@ -23,6 +23,7 @@ class UsuarioResponse {
   final int seguidosCount;
   final int bandasSeguidasCount;
 
+
   UsuarioResponse({
     required this.id,
     required this.nombre,
@@ -46,16 +47,13 @@ class UsuarioResponse {
     required this.bandasSeguidasCount,
   });
 
+  
+
   factory UsuarioResponse.fromJson(Map<String, dynamic> json) {
     String? imgPerfilUrl;
 
     if (json['img_perfil'] != null) {
       final raw = json['img_perfil'] as String;
-      // Siempre extraemos solo el nombre de archivo para construir
-      // la URL canónica, ya que el backend puede devolver:
-      //   - path relativo:  'perfiles/filename.jpg'
-      //   - URL completa:   'http://...storage/usuarios/perfiles/filename.jpg'
-      // En ambos casos el archivo vive en storage/usuarios/.
       final filename = raw.split('/').last;
       if (filename.isNotEmpty) {
         imgPerfilUrl = 'http://10.0.2.2:8000/storage/perfiles/$filename';
@@ -154,4 +152,5 @@ class SeguidorResponse {
       imgPerfil: imgPerfilUrl,
     );
   }
+
 }

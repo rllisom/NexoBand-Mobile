@@ -17,9 +17,9 @@ class MensajeService implements MensajeInterface {
         'Authorization': 'Bearer ${await GuardarToken.getAuthToken()}',
       },
       body: jsonEncode({
+        'texto': texto,
         'chats_id': chatId,
         'users_id': userId,
-        'texto': texto,
       }),
     );
 

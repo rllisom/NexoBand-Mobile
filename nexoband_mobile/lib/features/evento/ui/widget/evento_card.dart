@@ -12,10 +12,8 @@ class EventoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fecha = DateTime.tryParse(evento.fecha);
-    final fechaFormateada = fecha != null
-        ? '${fecha.day}/${fecha.month}/${fecha.year}'
-        : evento.fecha;
+    final fecha = evento.fecha;
+    final fechaFormateada = '${fecha.day}/${fecha.month}/${fecha.year} ${fecha.hour}:${fecha.minute.toString().padLeft(2, '0')}';
 
     return GestureDetector(
       onTap: () => EventoDetailSheet.show(context, evento),
@@ -88,15 +86,6 @@ class EventoCard extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.people, color: Color(0xFFB0B0B0), size: 14),
-                          const SizedBox(width: 4),
-                          Text('${evento.asistentesCount}',
-                              style: const TextStyle(
-                                  color: Color(0xFFB0B0B0), fontSize: 14)),
-                        ],
                       ),
                     ],
                   ),

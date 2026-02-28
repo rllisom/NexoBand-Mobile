@@ -96,7 +96,7 @@ class _SearchViewState extends State<SearchView> {
                   ),
                 ),
                 onChanged: (value) {
-                  setState(() {}); // para mostrar/ocultar la X
+                  setState(() {}); 
                   _onSearchChanged(value);
                 },
               ),

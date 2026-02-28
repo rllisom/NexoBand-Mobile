@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:nexoband_mobile/config/api_base_url.dart';
@@ -45,17 +46,25 @@ class PublicacionService implements PublicacionInterface {
 
     // Campos de texto
     final fields = request.toFields();
+
+    debugPrint('📤 Fields: $fields');
+    debugPrint('📤 Multimedia: ${multimedia?.path}');
     multipartRequest.fields.addAll(fields);
+
+    
 
     // Archivo opcional
     if (multimedia != null) {
       multipartRequest.files.add(
-        await http.MultipartFile.fromPath('multimedia', multimedia.path),
+        await http.MultipartFile.fromPath('archivo', multimedia.path),
       );
     }
 
     final streamed = await multipartRequest.send();
     final response = await http.Response.fromStream(streamed);
+
+    debugPrint('📥 Status: ${response.statusCode}');
+    debugPrint('📥 Body: ${response.body}');
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final jsonResponse = json.decode(response.body);

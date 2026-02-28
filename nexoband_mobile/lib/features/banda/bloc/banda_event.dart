@@ -8,3 +8,9 @@ class LoadBandaDetail extends BandaEvent {
   final int bandaId;
   LoadBandaDetail(this.bandaId);
 }
+
+
+class CrearBanda extends BandaEvent {
+  final BandaRequest bandaRequest;
+  CrearBanda(this.bandaRequest);
+}

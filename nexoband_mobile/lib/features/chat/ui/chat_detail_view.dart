@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:nexoband_mobile/config/obtener_usuario_registrado.dart';
 import 'package:nexoband_mobile/core/model/chat_response.dart';
+import 'package:nexoband_mobile/core/service/chat_service.dart';
 import 'package:nexoband_mobile/core/service/mensaje_service.dart';
+import 'package:nexoband_mobile/features/chat/bloc/chat_bloc.dart';
 
 class ChatDetailView extends StatefulWidget {
   final ChatResponse chat;
@@ -84,8 +86,47 @@ class _ChatDetailViewState extends State<ChatDetailView> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            Navigator.of(context).pop();
+            setState(() {
+              ChatBloc(ChatService()).add(CargarChats()); // Refrescar lista de chats al volver
+            });
+          },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            tooltip: 'Eliminar chat',
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Eliminar chat'),
+                  content: const Text('¿Seguro que quieres eliminar este chat? Esta acción no se puede deshacer.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancelar'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm == true) {
+                await ChatService().eliminarChat(widget.chat.id);
+                if (mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Chat eliminado'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+          ),
+        ],
         title: _otroUsuario == null
             ? const CircularProgressIndicator()
             : Row(

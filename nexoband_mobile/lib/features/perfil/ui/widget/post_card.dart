@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nexoband_mobile/core/model/publicacion_response.dart';
+import 'package:nexoband_mobile/core/service/publicacion_service.dart';
+import 'package:nexoband_mobile/features/perfil/bloc/perfil_bloc.dart';
 
 class PostCard extends StatelessWidget {
   final Publicacion publicacion;
 
   const PostCard({super.key, required this.publicacion});
+
+  Future<bool> _comprobarSiEsMia(BuildContext context) async {
+    final perfilState = BlocProvider.of<PerfilBloc>(context).state;
+    if (perfilState is PerfilCargado) {
+      return perfilState.usuario.id == publicacion.user?.id;
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,54 +36,111 @@ class PostCard extends StatelessWidget {
         children: [
           // Cabecera
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ClipOval(
-                child: imagen != null
-                    ? Image.network(
-                        imagen,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          width: 40,
-                          height: 40,
-                          color: Colors.grey[800],
-                          child: const Icon(Icons.person,
-                              color: Colors.white54, size: 20),
-                        ),
-                      )
-                    : Container(
-                        width: 40,
-                        height: 40,
-                        color: Colors.grey[800],
-                        child: const Icon(Icons.person,
-                            color: Colors.white54, size: 20),
-                      ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Text(
-                    nombre,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14),
+                  ClipOval(
+                    child: imagen != null
+                        ? Image.network(
+                            imagen,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              width: 40,
+                              height: 40,
+                              color: Colors.grey[800],
+                              child: const Icon(Icons.person,
+                                  color: Colors.white54, size: 20),
+                            ),
+                          )
+                        : Container(
+                            width: 40,
+                            height: 40,
+                            color: Colors.grey[800],
+                            child: const Icon(Icons.person,
+                                color: Colors.white54, size: 20),
+                          ),
                   ),
-                  if (publicacion.user?.username != null)
-                    Text(
-                      '@${publicacion.user!.username}',
-                      style: const TextStyle(
-                          color: Color(0xFF9ca3af), fontSize: 12),
-                    ),
-                  Text(
-                    _timeAgo(publicacion.createdAt),
-                    style: const TextStyle(
-                        color: Color(0xFF9ca3af), fontSize: 12),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        nombre,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14),
+                      ),
+                      if (publicacion.user?.username != null)
+                        Text(
+                          '@${publicacion.user!.username}',
+                          style: const TextStyle(
+                              color: Color(0xFF9ca3af), fontSize: 12),
+                        ),
+                      Text(
+                        _timeAgo(publicacion.createdAt),
+                        style: const TextStyle(
+                            color: Color(0xFF9ca3af), fontSize: 12),
+                      ),
+                    ],
                   ),
                 ],
               ),
+              FutureBuilder<bool>(
+                future: _comprobarSiEsMia(context),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const SizedBox.shrink();
+                  }
+                  if (snapshot.hasData && snapshot.data == true) {
+                    return IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red, size: 15,),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Eliminar publicación'),
+                            content: const Text('¿Estás seguro de que quieres eliminar esta publicación?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancelar'),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  try{
+                                    await PublicacionService().eliminarPublicacion(publicacion.id);
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                      BlocProvider.of<PerfilBloc>(context).add(CargarPerfil());
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Publicación eliminada')),
+                                      );
+                                    }
+                                  }catch(e){
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Error al eliminar: $e')),
+                                      );
+                                    }
+                                  }
+                                },
+                                child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+              
             ],
           ),
           // Contenido
