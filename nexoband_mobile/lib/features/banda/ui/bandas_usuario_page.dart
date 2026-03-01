@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nexoband_mobile/core/model/banda_en_usuario_response.dart';
+import 'package:nexoband_mobile/features/ajustes/ui/ajustes_crear_banda.dart';
 import 'package:nexoband_mobile/features/banda/ui/widget/banda_card.dart';
 
 class BandasUsuarioPage extends StatelessWidget {
@@ -44,7 +45,10 @@ class BandasUsuarioPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const AjustesCrearBanda()));
+                },
                 icon: const Icon(Icons.add, color: Colors.white, size: 18),
                 label: const Text(
                   'Nueva banda',

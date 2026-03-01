@@ -5,6 +5,7 @@ sealed class BandaState {}
 
 final class BandaInitial extends BandaState {}
 
+// ── Carga detalle ────────────────────────────────────────────────────
 class BandaDetailLoading extends BandaState {}
 
 class BandaDetailLoaded extends BandaState {
@@ -17,6 +18,7 @@ class BandaDetailError extends BandaState {
   BandaDetailError(this.mensaje);
 }
 
+// ── Crear banda ──────────────────────────────────────────────────────
 class CreandoBanda extends BandaState {}
 
 class BandaCreada extends BandaState {}
@@ -26,6 +28,7 @@ class BandaCreacionError extends BandaState {
   BandaCreacionError(this.mensaje);
 }
 
+// ── Editar banda ─────────────────────────────────────────────────────
 class EditandoBanda extends BandaState {}
 
 class BandaEditada extends BandaState {}
@@ -33,4 +36,17 @@ class BandaEditada extends BandaState {}
 class BandaEdicionError extends BandaState {
   final String mensaje;
   BandaEdicionError(this.mensaje);
+}
+
+// ── Imagen de perfil ─────────────────────────────────────────────────
+class BandaFotoSubiendo extends BandaState {} 
+
+// ── Agregar miembro ──────────────────────────────────────────────────
+class AgregarMiembroLoading extends BandaState {}
+
+class MiembroAgregado extends BandaState {}
+
+class AgregarMiembroError extends BandaState {
+  final String mensaje;
+  AgregarMiembroError(this.mensaje);
 }

@@ -6,6 +6,7 @@ class BandaRequest {
   final String? fecCreacion;
   final String? descripcion;
   final File? imgPerfil;
+  final int? categoria; 
 
   BandaRequest({
     required this.nombre,
@@ -13,14 +14,17 @@ class BandaRequest {
     this.fecCreacion,
     this.descripcion,
     this.imgPerfil,
+    this.categoria,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'nombre': nombre,
-      'genero': genero,
-      'fecCreacion': fecCreacion,
-      'descripcion': descripcion,
+      if (genero != null) 'genero': genero,
+      if (fecCreacion != null) 'fec_creacion': fecCreacion,
+      if (descripcion != null) 'descripcion': descripcion,
+      if (imgPerfil != null) 'img_perfil': imgPerfil,
+      if (categoria != null) 'categoria': categoria,
     };
   }
 }

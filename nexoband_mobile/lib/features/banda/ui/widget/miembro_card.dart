@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:nexoband_mobile/core/model/banda_response.dart';
+import 'package:nexoband_mobile/core/model/user_response.dart';
+import 'package:nexoband_mobile/core/service/perfil_service.dart';
+import 'package:nexoband_mobile/features/perfil/ui/perfil_ajeno_page.dart';
 
 class MiembroCard extends StatelessWidget {
-  final int id;
-  final String nombre;
-  final String apellidos;
-  final String username;
-  final String? imgPerfil;
-  final String? rol;
+  final UsuarioBanda miembro;
 
   const MiembroCard({
     super.key,
-    required this.id,
-    required this.nombre,
-    required this.apellidos,
-    required this.username,
-    this.imgPerfil,
-    this.rol,
+    required this.miembro,
+  
   });
 
   @override
   Widget build(BuildContext context) {
+    final PerfilService perfilService = PerfilService();
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF232120),
@@ -30,9 +26,9 @@ class MiembroCard extends StatelessWidget {
       child: Row(
         children: [
           ClipOval(
-            child: imgPerfil != null
+            child: miembro.imgPerfil != null
                 ? Image.network(
-                    imgPerfil!,
+                    miembro.imgPerfil!,
                     width: 46,
                     height: 46,
                     fit: BoxFit.cover,
@@ -46,7 +42,7 @@ class MiembroCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$nombre $apellidos',
+                  '${miembro.nombre} ${miembro.apellidos}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -55,7 +51,7 @@ class MiembroCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  rol ?? '@$username',
+                  miembro.rol ?? '@${miembro.username}',
                   style: const TextStyle(
                     color: Color(0xFF9ca3af),
                     fontSize: 13,
@@ -64,7 +60,20 @@ class MiembroCard extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: Color(0xFF9ca3af)),
+          IconButton(
+            icon: const Icon(Icons.chevron_right, color: Color(0xFF9ca3af)),
+            onPressed: () async{
+              UsuarioResponse usuario = await perfilService.getUsuario(miembro.id);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PerfilAjenoPage(
+                    usuario: usuario,
+                  ),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );

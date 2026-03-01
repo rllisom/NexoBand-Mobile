@@ -39,5 +39,7 @@ class SearchService  implements SearchInterface {
     }
     throw Exception('Error al buscar bandas');
   }
+
+  Future<void> agregarMiembro(int bandaId, int id) async {}
   
 }
