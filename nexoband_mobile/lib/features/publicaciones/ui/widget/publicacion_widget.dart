@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:nexoband_mobile/core/model/publicacion_response.dart';
+import 'package:nexoband_mobile/core/service/perfil_service.dart';
+import 'package:nexoband_mobile/features/perfil/ui/perfil_ajeno_page.dart';
+import 'package:nexoband_mobile/features/banda/ui/banda_ajena_view.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/publicacion_detail_view.dart';
 
 class PublicacionWidget extends StatefulWidget {
   final Publicacion publicacion;
@@ -10,7 +14,16 @@ class PublicacionWidget extends StatefulWidget {
 }
 
 class _PublicacionWidgetState extends State<PublicacionWidget> {
-  bool _showComentarios = false;
+  final PerfilService perfilService = PerfilService();
+
+  Widget _avatarFallback(bool esBanda) => Container(
+        color: const Color(0xFF2d2a28),
+        child: Icon(
+          esBanda ? Icons.music_note : Icons.person,
+          color: const Color(0xFF9ca3af),
+          size: 22,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -20,19 +33,18 @@ class _PublicacionWidgetState extends State<PublicacionWidget> {
     final multimedia = pub.multimedia;
 
     final String autorNombre = banda?.nombre
-        ?? user?.nombre
+        ?? user?.username
         ?? 'Usuario desconocido';
 
-    final String autorImagen = banda?.imgPerfil
-        ?? user?.imgPerfil
-        ?? 'https://marketplace.canva.com/A5alg/MAESXCA5alg/1/tl/canva-user-icon-MAESXCA5alg.png';
+    final String? autorImagenRaw = banda != null ? banda.imgPerfil : user?.imgPerfil;
+    final String autorImagen = autorImagenRaw ?? '';
 
     final String hora =
         '${pub.createdAt.hour.toString().padLeft(2, '0')}:'
         '${pub.createdAt.minute.toString().padLeft(2, '0')}';
 
     return Card(
-      color: const Color(0xFF1E1E2E),
+      color: const Color(0xFF232120),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -43,23 +55,54 @@ class _PublicacionWidgetState extends State<PublicacionWidget> {
             // ── Cabecera ──────────────────────────────────────
             Row(
               children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundImage: NetworkImage(autorImagen),
-                  onBackgroundImageError: (_, __) {},
-                  backgroundColor: Colors.grey[800],
+                ClipOval(
+                  child: SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: autorImagen.isNotEmpty
+                        ? Image.network(
+                            autorImagen,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _avatarFallback(banda != null),
+                            loadingBuilder: (_, child, progress) =>
+                                progress == null ? child : _avatarFallback(banda != null),
+                          )
+                        : _avatarFallback(banda != null),
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        autorNombre,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
+                      GestureDetector(
+                        onTap: () async {
+                          if (banda != null && banda.id != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BandaAjenaView(bandaId: banda.id!),
+                              ),
+                            );
+                          } 
+                        
+                          else if (user != null) {
+                            final userResponse = await perfilService.getUsuario(user.id);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PerfilAjenoPage(usuario: userResponse),
+                              ),
+                            );
+                          }
+                        },
+                        child: Text(
+                          '@$autorNombre',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
                         ),
                       ),
                       Text(
@@ -91,13 +134,6 @@ class _PublicacionWidgetState extends State<PublicacionWidget> {
                 ),
               ),
 
-            // ── Contenido ─────────────────────────────────────
-            if (pub.contenido != null && pub.contenido!.isNotEmpty)
-              Text(
-                pub.contenido!,
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-
             // ── Imagen multimedia ─────────────────────────────
             if (multimedia != null && multimedia.url.isNotEmpty) ...[
               const SizedBox(height: 10),
@@ -125,13 +161,16 @@ class _PublicacionWidgetState extends State<PublicacionWidget> {
 
             // ── Pie: botón comentarios ────────────────────────
             GestureDetector(
-              onTap: () => setState(() => _showComentarios = !_showComentarios),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PublicacionDetailView(publicacion: pub),
+                ),
+              ),
               child: Row(
                 children: [
-                  Icon(
-                    _showComentarios
-                        ? Icons.comment
-                        : Icons.comment_outlined,
+                  const Icon(
+                    Icons.comment_outlined,
                     color: Colors.white54,
                     size: 18,
                   ),
@@ -143,40 +182,6 @@ class _PublicacionWidgetState extends State<PublicacionWidget> {
                 ],
               ),
             ),
-
-            // ── Lista de comentarios (expandible) ────────────
-            if (_showComentarios && pub.comentarios.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              ...pub.comentarios.map(
-                (c) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.person_outline,
-                          color: Colors.white38, size: 16),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          c.contenidoTexto,
-                          style: const TextStyle(
-                              color: Colors.white60, fontSize: 13),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-
-            if (_showComentarios && pub.comentarios.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Text(
-                  'Sin comentarios todavía.',
-                  style: TextStyle(color: Colors.white38, fontSize: 13),
-                ),
-              ),
           ],
         ),
       ),

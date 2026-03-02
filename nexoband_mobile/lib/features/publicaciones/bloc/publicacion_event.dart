@@ -23,3 +23,10 @@ final class VerDetallePublicacion extends PublicacionEvent {
 }
 
 final class CargarFeed extends PublicacionEvent {}
+
+
+final class EnviarComentario extends PublicacionEvent {
+  final ComentarioRequest request;
+  EnviarComentario(this.request);
+}
+

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nexoband_mobile/core/dto/publicacion_request.dart';
 import 'package:nexoband_mobile/core/service/chat_service.dart';
+import 'package:nexoband_mobile/core/service/comentario_service.dart';
+import 'package:nexoband_mobile/core/service/perfil_service.dart';
 import 'package:nexoband_mobile/core/service/publicacion_service.dart';
 import 'package:nexoband_mobile/features/busqueda/ui/search_view.dart';
 import 'package:nexoband_mobile/features/chat/bloc/chat_bloc.dart';
@@ -9,6 +12,7 @@ import 'package:nexoband_mobile/features/evento/ui/evento_list_view.dart';
 import 'package:nexoband_mobile/features/perfil/ui/perfil_detail_page.dart';
 import 'package:nexoband_mobile/features/publicaciones/bloc/publicacion_bloc.dart';
 import 'package:nexoband_mobile/features/publicaciones/ui/publicacion_view.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/widget/crear_publicacion_modal.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -25,7 +29,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
-    publicacionBloc = PublicacionBloc(PublicacionService())
+    publicacionBloc = PublicacionBloc(PublicacionService(),ComentarioService())
       ..add(CargarPublicacionesUsuario());
     chatBloc = ChatBloc(ChatService())
       ..add(CargarChats());
@@ -45,6 +49,75 @@ class _HomeViewState extends State<HomeView> {
       case 2: return 'Chat';
       case 3: return 'Perfil';
       default: return 'Inicio';
+    }
+  }
+
+  Future<void> _abrirCrearPublicacion() async {
+    try {
+      final usuario = await PerfilService().cargarPerfil();
+      if (!mounted) return;
+
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => CrearPublicacionModal(
+          usuarioActual: usuario,
+          bandasUsuario: usuario.bandas,
+          onPublicar: (texto, autorId, autorTipo, multimedia) async {
+            final titulo = texto.isEmpty
+                ? 'Nueva publicación'
+                : (texto.length > 50 ? '${texto.substring(0, 50)}...' : texto);
+
+            final request = PublicacionRequest(
+              titulo: titulo,
+              contenido: texto,
+              usersId: autorTipo == 'usuario' && autorId != null
+                  ? int.tryParse(autorId)
+                  : null,
+              bandasId: autorTipo == 'banda' && autorId != null
+                  ? int.tryParse(autorId)
+                  : null,
+            );
+
+            try {
+              await PublicacionService().crearPublicacion(
+                request,
+                multimedia: multimedia,
+              );
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Publicación creada correctamente'),
+                    backgroundColor: Color(0xFF22c55e),
+                  ),
+                );
+                // Recargar el feed
+                publicacionBloc.add(CargarFeed());
+              }
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: $e'),
+                    backgroundColor: Color(0xFFef365b),
+                  ),
+                );
+              }
+            }
+          },
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar usuario: $e'),
+            backgroundColor: const Color(0xFFef365b),
+          ),
+        );
+      }
     }
   }
 
@@ -131,9 +204,7 @@ class _HomeViewState extends State<HomeView> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.add),
-                  onPressed: () {
-                    // TODO: navegar a crear publicación
-                  },
+                  onPressed: _abrirCrearPublicacion,
                 ),
               ]
             : null,

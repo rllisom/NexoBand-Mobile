@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:nexoband_mobile/config/guardar_token.dart';
+import 'package:nexoband_mobile/core/dto/comentario_request.dart';
 import 'package:nexoband_mobile/core/model/publicacion_response.dart';
+import 'package:nexoband_mobile/core/service/comentario_service.dart';
+import 'package:nexoband_mobile/core/service/perfil_service.dart';
+import 'package:nexoband_mobile/core/service/publicacion_service.dart';
+import 'package:nexoband_mobile/features/banda/ui/banda_ajena_view.dart';
+import 'package:nexoband_mobile/features/perfil/ui/perfil_ajeno_page.dart';
 
 class PublicacionDetailView extends StatefulWidget {
   final Publicacion publicacion;
@@ -11,6 +18,23 @@ class PublicacionDetailView extends StatefulWidget {
 
 class _PublicacionDetailViewState extends State<PublicacionDetailView> {
   final TextEditingController _comentarioController = TextEditingController();
+  final PerfilService perfilService = PerfilService();
+  late Publicacion _publicacion;
+
+  @override
+  void initState() {
+    super.initState();
+    _publicacion = widget.publicacion;
+  }
+
+  Future<void> _recargarPublicacion() async {
+    try {
+      final actualizada = await PublicacionService().verDetallePublicacion(_publicacion.id);
+      if (mounted) setState(() => _publicacion = actualizada);
+    } catch (e) {
+      debugPrint('Error al recargar publicación: $e');
+    }
+  }
 
   @override
   void dispose() {
@@ -24,12 +48,22 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
         '· ${fecha.day}/${fecha.month}/${fecha.year}';
   }
 
+  Future<String> _obtenerUserName(int userId) async {
+    try {
+      final userResponse = await perfilService.getUsuario(userId);
+      return userResponse.username;
+    } catch (error) {
+      debugPrint('Error al cargar usuario $userId: $error');
+      return 'Usuario';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final pub = widget.publicacion;
+    final pub = _publicacion;
 
     final String autorNombre = pub.banda?.nombre
-        ?? pub.user?.nombre
+        ?? pub.user?.username
         ?? 'Usuario desconocido';
 
     final String autorImagen = pub.banda?.imgPerfil
@@ -82,12 +116,36 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                autorNombre,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
+                              GestureDetector(
+                                onTap: () async {
+                                  // Si la publicación es de una banda, navegar a BandaAjenaView
+                                  if (pub.banda != null && pub.banda!.id != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => BandaAjenaView(bandaId: pub.banda!.id!),
+                                      ),
+                                    );
+                                  }
+                                  // Si es de un usuario, navegar a PerfilAjenoPage
+                                  else if (pub.user != null) {
+                                    final userResponse = await perfilService.getUsuario(pub.user!.id);
+                                    if (!mounted) return;
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PerfilAjenoPage(usuario: userResponse),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  '@$autorNombre',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
                                 ),
                               ),
                               Text(
@@ -115,16 +173,6 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                               fontWeight: FontWeight.w700,
                               fontSize: 18,
                             ),
-                          ),
-                        ),
-
-                      // Contenido
-                      if (pub.contenido != null && pub.contenido!.isNotEmpty)
-                        Text(
-                          pub.contenido!,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
                           ),
                         ),
 
@@ -204,7 +252,7 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Avatar genérico (Comentario no trae img del usuario)
+                          
                           const CircleAvatar(
                             radius: 20,
                             backgroundColor: Color(0xFF3A3A4A),
@@ -222,12 +270,41 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                                     borderRadius: BorderRadius.circular(14),
                                   ),
                                   padding: const EdgeInsets.all(12),
-                                  child: Text(
-                                    c.contenidoTexto,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                    ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      FutureBuilder<String>(
+                                        future: _obtenerUserName(c.usersId),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState == ConnectionState.waiting) {
+                                            return const SizedBox(
+                                              height: 14,
+                                              width: 14,
+                                              child: CircularProgressIndicator(
+                                                color: Colors.white54,
+                                                strokeWidth: 2,
+                                              ),
+                                            );
+                                          }
+                                          return Text(
+                                            '@${snapshot.data ?? 'Usuario'}',
+                                            style: const TextStyle(
+                                              color: Color(0xFFFC7E39),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        c.contenidoTexto,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 Padding(
@@ -296,8 +373,38 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                   ),
                   child: IconButton(
                     icon: const Icon(Icons.send, color: Colors.white),
-                    onPressed: () {
-                      // TODO: disparar BLoC event para crear comentario
+                    onPressed: () async {
+                      final comentario = _comentarioController.text;
+                      Future<int> userId = GuardarToken.getUsuarioId();
+                      if (comentario.isNotEmpty) {
+                        final request = ComentarioRequest(
+                          usersId: await userId,
+                          publicacionId: widget.publicacion.id,
+                          bandasId: null,
+                          contenidoTexto: comentario,
+                        );
+                        try {
+                          await ComentarioService().crearComentario(request);
+                          await _recargarPublicacion();
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Comentario enviado'),
+                                backgroundColor: Color(0xFF22c55e),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Error al crear comentario'),
+                                backgroundColor: Color(0xFFef365b),
+                              ),
+                            );
+                          }
+                        }
+                      }
                       _comentarioController.clear();
                       FocusScope.of(context).unfocus();
                     },

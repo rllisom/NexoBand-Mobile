@@ -60,9 +60,11 @@ class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 isExpanded: true,
-                value: _autorSeleccionadoTipo == 'usuario' 
-                    ? 'usuario_${widget.usuarioActual.id}' 
-                    : _autorSeleccionadoId,
+                value: _autorSeleccionadoTipo == 'usuario'
+                    ? 'usuario_${widget.usuarioActual.id}'
+                    : (_autorSeleccionadoId != null
+                        ? 'banda_$_autorSeleccionadoId'
+                        : null),
                 hint: const Text('Selecciona quién publica', style: TextStyle(color: Colors.grey)),
                 items: [
                   // Usuario actual
@@ -112,7 +114,7 @@ class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(banda.nombre),
+                              Text(banda.nombre,style: TextStyle(color: Colors.white),),
                               Text('Banda', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
                             ],
                           ),

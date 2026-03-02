@@ -66,7 +66,6 @@ class _PerfilBodyWidgetState extends State<PerfilBodyWidget> {
         bandasId: autorTipo == 'banda' ? int.parse(autorId) : null,
       );
 
-      // Llamada directa al servicio (no hay PublicacionBloc en el árbol)
       await PublicacionService().crearPublicacion(
         request,
         multimedia: multimedia,
@@ -79,7 +78,6 @@ class _PerfilBodyWidgetState extends State<PerfilBodyWidget> {
             backgroundColor: Colors.green,
           ),
         );
-        // Refrescar perfil para mostrar la nueva publicación
         context.read<PerfilBloc>().add(RefrescarPerfil());
       }
     } catch (e) {
@@ -127,7 +125,8 @@ class _PerfilBodyWidgetState extends State<PerfilBodyWidget> {
                       onPressed: () => Navigator.pop(context),
                     )
                   else
-                    const SizedBox(width: 0),
+                    const SizedBox.shrink(),
+                  if (!esPerfilAjeno)
                     IconButton(
                       icon: const Icon(
                         Icons.settings,
@@ -136,9 +135,11 @@ class _PerfilBodyWidgetState extends State<PerfilBodyWidget> {
                       ),
                       onPressed: () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => AjustesView()),
+                        MaterialPageRoute(builder: (_) => const AjustesView()),
                       ),
-                    ),
+                    )
+                  else
+                    const SizedBox.shrink(),
                 ],
               ),
             ),
@@ -319,44 +320,18 @@ class _PerfilBodyWidgetState extends State<PerfilBodyWidget> {
                       ),
                     ),
 
-                  const SizedBox(height: 8),
-
-                  if (usuario.instrumentos.isNotEmpty)
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: usuario.instrumentos
-                          .take(4)
-                          .map((i) => _Badge(text: i.nombre))
-                          .toList(),
-                    ),
-
                   const SizedBox(height: 16),
 
-                  if (!esPerfilAjeno)
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1d1817),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                  if (usuario.instrumentos.isNotEmpty)
+                    SizedBox(
+                      height: 36,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: usuario.instrumentos.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        itemBuilder: (_, i) => _Badge(
+                          text: usuario.instrumentos[i].nombre,
                         ),
-                        minimumSize: const Size.fromHeight(36),
-                        elevation: 0,
-                        side: const BorderSide(color: Color(0x1AFFFFFF)),
-                      ),
-                      onPressed: () {
-                        // TODO: navegar a editar perfil
-                      },
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.edit, size: 16, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(
-                            'Editar perfil',
-                            style: TextStyle(color: Colors.white, fontSize: 14),
-                          ),
-                        ],
                       ),
                     ),
                 ],

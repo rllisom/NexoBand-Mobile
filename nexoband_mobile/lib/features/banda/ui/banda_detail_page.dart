@@ -1,15 +1,22 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nexoband_mobile/core/model/banda_en_usuario_response.dart';
+import 'package:nexoband_mobile/core/dto/evento_request.dart';
+import 'package:nexoband_mobile/core/dto/publicacion_request.dart';
 import 'package:nexoband_mobile/core/service/banda_service.dart';
+import 'package:nexoband_mobile/core/service/comentario_service.dart';
+import 'package:nexoband_mobile/core/service/evento_service.dart';
+import 'package:nexoband_mobile/core/service/perfil_service.dart';
+import 'package:nexoband_mobile/core/service/publicacion_service.dart';
 import 'package:nexoband_mobile/core/service/search_service.dart';
 import 'package:nexoband_mobile/core/model/usuario_search_response.dart';
 import 'package:nexoband_mobile/features/banda/bloc/banda_bloc.dart';
 import 'package:nexoband_mobile/features/banda/ui/widget/miembro_card.dart';
 import 'package:nexoband_mobile/features/evento/ui/widget/evento_card.dart';
 import 'package:nexoband_mobile/features/perfil/ui/widget/post_card.dart';
+import 'package:nexoband_mobile/features/publicaciones/bloc/publicacion_bloc.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/widget/crear_publicacion_modal.dart';
 
 class BandaDetailPage extends StatefulWidget {
   final BandaEnUsuarioResponse banda;
@@ -23,6 +30,7 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
 
   final SearchService searchService = SearchService();
   final BandaService bandaService = BandaService();
+  final EventoService eventoService = EventoService();
   // ─── Editar foto vía BLoC ────────────────────────────────────────────
   Future<void> _editarFotoPerfil(int bandaId) async {
     final picker = ImagePicker();
@@ -69,15 +77,395 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
     child: const Icon(Icons.music_note, color: Color(0xFF9ca3af), size: 40),
   );
 
-  Widget _buildAvatarMiembro(String? url) {
-    return CircleAvatar(
-      radius: 22,
-      backgroundColor: const Color(0xFF2d2a28),
-      backgroundImage: url != null ? NetworkImage(url) : null,
-      onBackgroundImageError: url != null ? (_, __) {} : null,
-      child: url == null
-          ? const Icon(Icons.person, color: Color(0xFF9ca3af), size: 22)
-          : null,
+  // Widget _buildAvatarMiembro(String? url) {
+  //   return CircleAvatar(
+  //     radius: 22,
+  //     backgroundColor: const Color(0xFF2d2a28),
+  //     backgroundImage: url != null ? NetworkImage(url) : null,
+  //     onBackgroundImageError: url != null ? (_, __) {} : null,
+  //     child: url == null
+  //         ? const Icon(Icons.person, color: Color(0xFF9ca3af), size: 22)
+  //         : null,
+  //   );
+  // }
+
+  // ─── Crear publicación ────────────────────────────────────────────────
+  Future<void> _abrirCrearPublicacion(BuildContext ctx, int bandaId) async {
+    try {
+      final usuario = await PerfilService().cargarPerfil();
+      if (!mounted) return;
+
+      await showModalBottomSheet(
+        context: ctx,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => CrearPublicacionModal(
+          usuarioActual: usuario,
+          bandasUsuario: [widget.banda],
+          onPublicar: (texto, autorId, autorTipo, multimedia) {
+            final titulo = texto.isEmpty
+                ? 'Nueva publicación'
+                : (texto.length > 50 ? '${texto.substring(0, 50)}...' : texto);
+
+            final request = PublicacionRequest(
+              titulo: titulo,
+              contenido: texto,
+              usersId: autorTipo == 'usuario' && autorId != null
+                  ? int.tryParse(autorId)
+                  : null,
+              bandasId: autorTipo == 'banda' && autorId != null
+                  ? int.tryParse(autorId)
+                  : bandaId,
+            );
+
+            ctx.read<PublicacionBloc>().add(
+                  CrearPublicacion(request, multimedia: multimedia));
+          },
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar usuario: $e'),
+            backgroundColor: const Color(0xFFef365b),
+          ),
+        );
+      }
+    }
+  }
+
+  // ─── Crear evento ─────────────────────────────────────────────────────
+  Future<void> _mostrarCrearEvento(BuildContext ctx, int bandaId) async {
+    final formKey = GlobalKey<FormState>();
+    final nombreCtrl = TextEditingController();
+    final lugarCtrl = TextEditingController();
+    final coordenadasCtrl = TextEditingController();
+    final descripcionCtrl = TextEditingController();
+    final aforoCtrl = TextEditingController();
+    DateTime? fechaSeleccionada;
+    bool enviando = false;
+
+    await showModalBottomSheet(
+      context: ctx,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1C1B1A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (ctx2, setSheetState) {
+          Future<void> seleccionarFecha() async {
+            final ahora = DateTime.now();
+            final fecha = await showDatePicker(
+              context: ctx2,
+              initialDate: ahora,
+              firstDate: ahora,
+              lastDate: DateTime(ahora.year + 5),
+              builder: (c, child) => Theme(
+                data: ThemeData.dark().copyWith(
+                  colorScheme: const ColorScheme.dark(
+                    primary: Color(0xFFFC7E39),
+                    onPrimary: Colors.white,
+                    surface: Color(0xFF2d2a28),
+                    onSurface: Colors.white,
+                  ),
+                ),
+                child: child!,
+              ),
+            );
+            if (fecha == null) return;
+            final hora = await showTimePicker(
+              context: ctx2,
+              initialTime: TimeOfDay.now(),
+              builder: (c, child) => Theme(
+                data: ThemeData.dark().copyWith(
+                  colorScheme: const ColorScheme.dark(
+                    primary: Color(0xFFFC7E39),
+                    onPrimary: Colors.white,
+                    surface: Color(0xFF2d2a28),
+                    onSurface: Colors.white,
+                  ),
+                ),
+                child: child!,
+              ),
+            );
+            if (hora == null) return;
+            setSheetState(() {
+              fechaSeleccionada = DateTime(
+                fecha.year, fecha.month, fecha.day, hora.hour, hora.minute,
+              );
+            });
+          }
+
+          InputDecoration inputDeco(String label, {String? hint}) => InputDecoration(
+            labelText: label,
+            hintText: hint,
+            labelStyle: const TextStyle(color: Color(0xFF9ca3af)),
+            hintStyle: const TextStyle(color: Color(0xFF6b7280)),
+            filled: true,
+            fillColor: const Color(0xFF2d2a28),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFFC7E39)),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFef365b)),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFef365b)),
+            ),
+            errorStyle: const TextStyle(color: Color(0xFFef365b)),
+          );
+
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 16, right: 16, top: 20,
+              bottom: MediaQuery.of(ctx2).viewInsets.bottom + 24,
+            ),
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Título ──────────────────────────────────────
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Crear evento',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Color(0xFF9ca3af)),
+                          onPressed: () => Navigator.pop(sheetCtx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ── Nombre ────────────────────────────────────────
+                    TextFormField(
+                      controller: nombreCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: inputDeco('Nombre del evento *'),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'El nombre es obligatorio';
+                        }
+                        if (v.trim().length < 3) return 'Mínimo 3 caracteres';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ── Fecha y hora ──────────────────────────────────
+                    GestureDetector(
+                      onTap: seleccionarFecha,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2d2a28),
+                          borderRadius: BorderRadius.circular(10),
+                          border: fechaSeleccionada != null
+                              ? Border.all(color: const Color(0xFFFC7E39))
+                              : null,
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.calendar_today_outlined,
+                                color: Color(0xFF9ca3af), size: 18),
+                            const SizedBox(width: 10),
+                            Text(
+                              fechaSeleccionada != null
+                                  ? '${fechaSeleccionada!.day.toString().padLeft(2, '0')}/'
+                                      '${fechaSeleccionada!.month.toString().padLeft(2, '0')}/'
+                                      '${fechaSeleccionada!.year}  '
+                                      '${fechaSeleccionada!.hour.toString().padLeft(2, '0')}:'
+                                      '${fechaSeleccionada!.minute.toString().padLeft(2, '0')}'
+                                  : 'Seleccionar fecha y hora *',
+                              style: TextStyle(
+                                color: fechaSeleccionada != null
+                                    ? Colors.white
+                                    : const Color(0xFF9ca3af),
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ── Lugar ─────────────────────────────────────────
+                    TextFormField(
+                      controller: lugarCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: inputDeco('Lugar *'),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'El lugar es obligatorio';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ── Coordenadas (opcional) ────────────────────────
+                    TextFormField(
+                      controller: coordenadasCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: inputDeco('Coordenadas',
+                          hint: 'ej. 37.3899,-5.9845 (opcional)'),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return null;
+                        final regex = RegExp(
+                            r'^-?\d{1,3}\.\d+,\s*-?\d{1,3}\.\d+$');
+                        if (!regex.hasMatch(v.trim())) {
+                          return 'Formato: latitud,longitud (ej. 37.38,-5.98)';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ── Descripción (opcional) ────────────────────────
+                    TextFormField(
+                      controller: descripcionCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: inputDeco('Descripción', hint: 'Opcional'),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // ── Aforo (opcional) ──────────────────────────────
+                    TextFormField(
+                      controller: aforoCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      decoration:
+                          inputDeco('Aforo máximo', hint: 'Opcional'),
+                      keyboardType: TextInputType.number,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return null;
+                        final n = int.tryParse(v.trim());
+                        if (n == null || n <= 0) {
+                          return 'Introduce un número positivo';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── Botón enviar ──────────────────────────────────
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFC7E39),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                        ),
+                        onPressed: enviando
+                            ? null
+                            : () async {
+                                if (fechaSeleccionada == null) {
+                                  ScaffoldMessenger.of(ctx).showSnackBar(
+                                    const SnackBar(
+                                      content:
+                                          Text('Selecciona una fecha y hora'),
+                                      backgroundColor: Color(0xFFef365b),
+                                    ),
+                                  );
+                                  return;
+                                }
+                                if (!formKey.currentState!.validate()) return;
+
+                                setSheetState(() => enviando = true);
+                                try {
+                                  final dto = EventoRequest(
+                                    nombre: nombreCtrl.text.trim(),
+                                    fecha:
+                                        '${fechaSeleccionada!.year.toString().padLeft(4, '0')}-'
+                                        '${fechaSeleccionada!.month.toString().padLeft(2, '0')}-'
+                                        '${fechaSeleccionada!.day.toString().padLeft(2, '0')} '
+                                        '${fechaSeleccionada!.hour.toString().padLeft(2, '0')}:'
+                                        '${fechaSeleccionada!.minute.toString().padLeft(2, '0')}:00',
+                                    lugar: lugarCtrl.text.trim(),
+                                    coordenadas:
+                                        coordenadasCtrl.text.trim().isEmpty
+                                            ? null
+                                            : coordenadasCtrl.text.trim(),
+                                    descripcion:
+                                        descripcionCtrl.text.trim().isEmpty
+                                            ? null
+                                            : descripcionCtrl.text.trim(),
+                                    aforo: aforoCtrl.text.trim().isEmpty
+                                        ? null
+                                        : int.parse(aforoCtrl.text.trim()),
+                                    bandasId: bandaId,
+                                  );
+                                  await eventoService.crearEvento(dto);
+                                  if (mounted) {
+                                    Navigator.pop(sheetCtx);
+                                    ScaffoldMessenger.of(ctx).showSnackBar(
+                                      const SnackBar(
+                                        content:
+                                            Text('Evento creado correctamente'),
+                                        backgroundColor: Color(0xFF22c55e),
+                                      ),
+                                    );
+                                    context
+                                        .read<BandaBloc>()
+                                        .add(LoadBandaDetail(bandaId));
+                                  }
+                                } catch (e) {
+                                  setSheetState(() => enviando = false);
+                                  ScaffoldMessenger.of(ctx).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Error: $e'),
+                                      backgroundColor:
+                                          const Color(0xFFef365b),
+                                    ),
+                                  );
+                                }
+                              },
+                        child: enviando
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                    color: Colors.white, strokeWidth: 2),
+                              )
+                            : const Text(
+                                'Crear evento',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -228,9 +616,16 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => BandaBloc(bandaService: bandaService)
-        ..add(LoadBandaDetail(widget.banda.id)),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => BandaBloc(bandaService: bandaService)
+            ..add(LoadBandaDetail(widget.banda.id)),
+        ),
+        BlocProvider(
+          create: (_) => PublicacionBloc(PublicacionService(),ComentarioService()),
+        ),
+      ],
       child: DefaultTabController(
         length: 3,
         child: Scaffold(
@@ -251,7 +646,26 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
               ),
             ],
           ),
-          body: BlocConsumer<BandaBloc, BandaState>(
+          body: BlocListener<PublicacionBloc, PublicacionState>(
+            listener: (context, state) {
+              if (state is PublicacionCreada) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Publicación creada correctamente'),
+                    backgroundColor: Color(0xFF22c55e),
+                  ),
+                );
+                context.read<BandaBloc>().add(LoadBandaDetail(widget.banda.id));
+              } else if (state is PublicacionCreacionError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: ${state.mensaje}'),
+                    backgroundColor: const Color(0xFFef365b),
+                  ),
+                );
+              }
+            },
+            child: BlocConsumer<BandaBloc, BandaState>(
             listener: (context, state) {
               if (state is BandaDetailError) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -301,7 +715,7 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                                                 color: Color(0xFFFC7E39), strokeWidth: 2),
                                             ),
                                           )
-                                        : _buildAvatar(b.imgPerfil, 100),  // ✅ Con errorBuilder
+                                        : _buildAvatar(b.imgPerfil, 100), 
                                   ),
                                   // Botón cámara sobre la foto
                                   Positioned(
@@ -309,7 +723,7 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                                     child: GestureDetector(
                                       onTap: state is BandaFotoSubiendo
                                           ? null
-                                          : () => _editarFotoPerfil(b.id),  // ✅ Usa BLoC
+                                          : () => _editarFotoPerfil(b.id),  
                                       child: Container(
                                         padding: const EdgeInsets.all(6),
                                         decoration: const BoxDecoration(
@@ -408,14 +822,39 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                       child: TabBarView(
                         children: [
                           // Posts
-                          b.publicaciones == null || b.publicaciones!.isEmpty
-                              ? _emptyState(Icons.image_outlined, 'Sin publicaciones')
-                              : ListView.separated(
-                                  padding: const EdgeInsets.all(16),
-                                  itemCount: b.publicaciones!.length,
-                                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                  itemBuilder: (_, i) => PostCard(publicacion: b.publicaciones![i]),
+                          Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                                child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      side: const BorderSide(color: Color(0xFFFC7E39)),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    onPressed: () => _abrirCrearPublicacion(context, b.id),
+                                    icon: const Icon(Icons.add, size: 17, color: Color(0xFFFC7E39)),
+                                    label: const Text('Nueva publicación',
+                                        style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ),
                                 ),
+                              ),
+                              Expanded(
+                                child: b.publicaciones == null || b.publicaciones!.isEmpty
+                                    ? _emptyState(Icons.image_outlined, 'Sin publicaciones')
+                                    : ListView.separated(
+                                        padding: const EdgeInsets.all(16),
+                                        itemCount: b.publicaciones!.length,
+                                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                        itemBuilder: (_, i) =>
+                                            PostCard(publicacion: b.publicaciones![i]),
+                                      ),
+                              ),
+                            ],
+                          ),
 
                           // Miembros
                           b.usuarios.isEmpty
@@ -444,20 +883,44 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                                     }
                                     final miembro = b.usuarios[i];
                                     return MiembroCard(
-                                      miembro: miembro,  // ✅ Con foto correcta
+                                      miembro: miembro,
                                     );
                                   },
                                 ),
 
                           // Eventos
-                          b.eventos.isEmpty
-                              ? _emptyState(Icons.event_outlined, 'Sin eventos')
-                              : ListView.separated(
-                                  padding: const EdgeInsets.all(16),
-                                  itemCount: b.eventos.length,
-                                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                  itemBuilder: (_, i) => EventoCard(evento: b.eventos[i]),
+                          Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                                child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      side: const BorderSide(color: Color(0xFFFC7E39)),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    onPressed: () => _mostrarCrearEvento(context, b.id),
+                                    icon: const Icon(Icons.add, size: 17, color: Color(0xFFFC7E39)),
+                                    label: const Text('Crear evento',
+                                        style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ),
                                 ),
+                              ),
+                              Expanded(
+                                child: b.eventos.isEmpty
+                                    ? _emptyState(Icons.event_outlined, 'Sin eventos')
+                                    : ListView.separated(
+                                        padding: const EdgeInsets.all(16),
+                                        itemCount: b.eventos.length,
+                                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                        itemBuilder: (_, i) => EventoCard(evento: b.eventos[i]),
+                                      ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -466,10 +929,11 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
               }
               return const SizedBox.shrink();
             },
-          ),
-        ),
-      ),
-    );
+          ),       // BlocConsumer
+        ),         // BlocListener
+      ),           // Scaffold
+    ),             // DefaultTabController
+    );             // MultiBlocProvider
   }
 
   Widget _statChip(IconData icon, String value, String label) => Row(

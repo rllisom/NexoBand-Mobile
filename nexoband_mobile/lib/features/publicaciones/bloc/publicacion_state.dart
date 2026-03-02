@@ -37,6 +37,8 @@ class PublicacionEliminacionError extends PublicacionState{
   PublicacionEliminacionError(this.mensaje);
 }
 
+//---------------- Estados para feed --
+
 class FeedCargando extends PublicacionState {}
 
 class FeedCargado extends PublicacionState {
@@ -52,3 +54,28 @@ class FeedCargaError extends PublicacionState {
 }
 
 
+//-- Estados para comentarios--
+
+class EnviandoComentario extends PublicacionState {}
+
+class ComentarioEnviado extends PublicacionState {
+}
+
+class ComentarioEnvioError extends PublicacionState {
+  final String mensaje;
+  ComentarioEnvioError(this.mensaje);
+} 
+
+//---------------CargarPublicacionDetalle----------------
+
+class CargandoDetallePublicacion extends PublicacionState {}
+
+class DetallePublicacionCargado extends PublicacionState {
+  final Publicacion publicacion;
+  DetallePublicacionCargado(this.publicacion);
+}
+
+class DetallePublicacionError extends PublicacionState {
+  final String mensaje;
+  DetallePublicacionError(this.mensaje);
+}

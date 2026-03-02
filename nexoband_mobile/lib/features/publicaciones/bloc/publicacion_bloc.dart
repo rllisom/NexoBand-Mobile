@@ -1,16 +1,20 @@
 import 'package:bloc/bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:meta/meta.dart';
+import 'package:nexoband_mobile/core/dto/comentario_request.dart';
 import 'package:nexoband_mobile/core/dto/publicacion_request.dart';
 import 'package:nexoband_mobile/core/model/publicacion_response.dart';
+import 'package:nexoband_mobile/core/service/comentario_service.dart';
 import 'package:nexoband_mobile/core/service/publicacion_service.dart';
 
 part 'publicacion_event.dart';
 part 'publicacion_state.dart';
 
 class PublicacionBloc extends Bloc<PublicacionEvent, PublicacionState> {
-  PublicacionBloc(PublicacionService publicacionService)
-    : super(PublicacionInitial()) {
+  PublicacionBloc(
+    PublicacionService publicacionService,
+    ComentarioService comentarioService,
+  ) : super(PublicacionInitial()) {
     on<CargarPublicacionesUsuario>((event, emit) async {
       emit(PublicacionesCargando());
       try {
@@ -26,7 +30,8 @@ class PublicacionBloc extends Bloc<PublicacionEvent, PublicacionState> {
       emit(PublicacionesCreando());
       try {
         final publicacionCreada = await publicacionService.crearPublicacion(
-          event.request,multimedia:event.multimedia
+          event.request,
+          multimedia: event.multimedia,
         );
         emit(PublicacionCreada(publicacionCreada));
       } catch (e) {
@@ -54,6 +59,26 @@ class PublicacionBloc extends Bloc<PublicacionEvent, PublicacionState> {
         }
       } catch (e) {
         emit(FeedCargaError(e.toString()));
+      }
+    });
+
+    on<EnviarComentario>((event, emit) async {
+      emit(EnviandoComentario());
+      try {
+        await comentarioService.crearComentario(event.request);
+        emit(ComentarioEnviado());
+      } catch (e) {
+        emit(ComentarioEnvioError(e.toString()));
+      }
+    });
+
+    on<VerDetallePublicacion>((event, emit) async {
+      emit(CargandoDetallePublicacion());
+      try {
+        var response = await publicacionService.verDetallePublicacion(event.publicacionId);
+        emit(DetallePublicacionCargado(response));
+      } catch (e) {
+        emit(DetallePublicacionError(e.toString()));
       }
     });
   }

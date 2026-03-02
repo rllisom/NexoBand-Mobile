@@ -9,6 +9,7 @@ import 'package:nexoband_mobile/core/dto/publicacion_request.dart';
 import 'package:nexoband_mobile/core/interface/publicacion_interface.dart';
 import 'package:nexoband_mobile/core/model/publicacion_response.dart';
 
+
 class PublicacionService implements PublicacionInterface {
   // ── Listar publicaciones del usuario autenticado ──────────────────────────
   @override
@@ -39,6 +40,11 @@ class PublicacionService implements PublicacionInterface {
   }) async {
     final token = await GuardarToken.getAuthToken();
     final uri = Uri.parse('${ApiBaseUrl.baseUrl}/publicaciones/multimedia/crear');
+
+    if(request.usersId == null && request.bandasId != null) {
+      final usuarioId = await GuardarToken.getUsuarioId();
+      request.usersId = usuarioId;
+    }
 
     final multipartRequest = http.MultipartRequest('POST', uri)
       ..headers['Authorization'] = 'Bearer $token'
@@ -95,7 +101,7 @@ class PublicacionService implements PublicacionInterface {
   @override
   Future<List<Publicacion>> listarFeed() async {
     final response = await http.get(
-      Uri.parse('${ApiBaseUrl.baseUrl}/publicaciones/feed'),
+      Uri.parse('${ApiBaseUrl.baseUrl}/publicaciones'),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nexoband_mobile/core/model/item_feed.dart';
+import 'package:nexoband_mobile/core/model/publicidad.dart';
+import 'package:nexoband_mobile/core/service/comentario_service.dart';
 import 'package:nexoband_mobile/core/service/publicacion_service.dart';
 import 'package:nexoband_mobile/features/publicaciones/bloc/publicacion_bloc.dart';
 import 'package:nexoband_mobile/features/publicaciones/ui/widget/publicacion_widget.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/widget/publicidad_widget.dart';
 
 class PublicacionView extends StatefulWidget {
   const PublicacionView({super.key});
@@ -17,7 +21,7 @@ class _PublicacionViewState extends State<PublicacionView> {
   @override
   void initState() {
     super.initState();
-    _bloc = PublicacionBloc(PublicacionService());
+    _bloc = PublicacionBloc(PublicacionService(),ComentarioService());
     _bloc.add(CargarFeed());
   }
 
@@ -25,6 +29,86 @@ class _PublicacionViewState extends State<PublicacionView> {
   void dispose() {
     _bloc.close();
     super.dispose();
+  }
+
+  /// Inserta publicidad cada [frecuencia] publicaciones
+  List<ItemFeed> _insertarPublicidad(List publicaciones, {int frecuencia = 4}) {
+    final List<ItemFeed> feedConPublicidad = [];
+    
+    // Publicidades activas de ejemplo (en producción vendrían del backend)
+    final publicidadesDisponibles = [
+      Publicidad(
+        nombreEmpresa: 'Sala Apolo',
+        tipoEmpresa: 'Sala de conciertos',
+        icono: '🎸',
+        estado: true,
+        fechaInicio: DateTime.now().subtract(const Duration(days: 10)),
+        fechaFinal: DateTime.now().add(const Duration(days: 20)),
+        descripcion: 'La mejor sala de conciertos de Barcelona. Próximos eventos: Rock en vivo todos los viernes.',
+        nombreContacto: 'Juan García',
+        emailContacto: 'info@sala-apolo.com',
+        telefonoContacto: '+34 93 441 40 01',
+        precioAparicion: 150.0,
+        nApariciones: 100,
+      ),
+      Publicidad(
+        nombreEmpresa: 'Music Store BCN',
+        tipoEmpresa: 'Tienda de instrumentos',
+        icono: '🎹',
+        estado: true,
+        fechaInicio: DateTime.now().subtract(const Duration(days: 5)),
+        fechaFinal: DateTime.now().add(const Duration(days: 25)),
+        descripcion: '¡Descuentos de hasta 30% en guitarras, bajos y teclados! Visítanos en nuestras 3 tiendas en Barcelona.',
+        nombreContacto: 'María López',
+        emailContacto: 'ventas@musicstore-bcn.com',
+        telefonoContacto: '+34 93 318 77 80',
+        precioAparicion: 200.0,
+        nApariciones: 150,
+      ),
+      Publicidad(
+        nombreEmpresa: 'Festival Primavera Sound',
+        tipoEmpresa: 'Festival de música',
+        icono: '🎉',
+        estado: true,
+        fechaInicio: DateTime.now().subtract(const Duration(days: 15)),
+        fechaFinal: DateTime.now().add(const Duration(days: 35)),
+        descripcion: 'Primavera Sound 2024 - Del 29 de mayo al 2 de junio. ¡Entradas ya disponibles!',
+        nombreContacto: 'Festival Team',
+        emailContacto: 'info@primaverasound.com',
+        telefonoContacto: '+34 93 123 45 67',
+        precioAparicion: 500.0,
+        nApariciones: 300,
+      ),
+    ];
+
+    // Filtrar solo publicidades activas
+    final publicidadesActivas = publicidadesDisponibles
+        .where((pub) => pub.estaActivo)
+        .toList();
+
+    if (publicidadesActivas.isEmpty) {
+      // Si no hay publicidad activa, devolver solo publicaciones
+      return publicaciones.map((p) => ItemFeed.publicacion(p)).toList();
+    }
+
+    int indicePublicidad = 0;
+
+    for (int i = 0; i < publicaciones.length; i++) {
+      // Agregar la publicación normal
+      feedConPublicidad.add(ItemFeed.publicacion(publicaciones[i]));
+
+      // Cada [frecuencia] publicaciones, insertar un anuncio
+      if ((i + 1) % frecuencia == 0 && publicidadesActivas.isNotEmpty) {
+        feedConPublicidad.add(
+          ItemFeed.publicidad(
+            publicidadesActivas[indicePublicidad % publicidadesActivas.length],
+          ),
+        );
+        indicePublicidad++;
+      }
+    }
+
+    return feedConPublicidad;
   }
 
   @override
@@ -141,6 +225,8 @@ class _PublicacionViewState extends State<PublicacionView> {
 
           // ── Feed cargado ──────────────────────────────────
           if (state is FeedCargado) {
+            final feedConPublicidad = _insertarPublicidad(state.publicaciones);
+
             return RefreshIndicator(
               color: const Color(0xFFFC7E39),
               backgroundColor: const Color(0xFF232120),
@@ -148,14 +234,16 @@ class _PublicacionViewState extends State<PublicacionView> {
               child: ListView.builder(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.only(top: 8, bottom: 16),
-                itemCount: state.publicaciones.length,
+                itemCount: feedConPublicidad.length,
                 itemBuilder: (context, index) {
+                  final item = feedConPublicidad[index];
+                  
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 6),
-                    child: PublicacionWidget(
-                      publicacion: state.publicaciones[index],
-                    ),
+                    child: item.esPublicacion
+                        ? PublicacionWidget(publicacion: item.publicacion!)
+                        : PublicidadWidget(publicidad: item.publicidad!),
                   );
                 },
               ),

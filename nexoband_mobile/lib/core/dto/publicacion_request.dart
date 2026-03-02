@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 class PublicacionRequest {
   final String titulo;
   final String contenido;
-  final int? usersId;
+  int? usersId;
   final int? bandasId;
 
   PublicacionRequest({

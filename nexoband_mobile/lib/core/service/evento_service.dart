@@ -33,6 +33,7 @@ class EventoService implements EventoInterface {
 
   @override
   Future<EventoResponse> crearEvento(EventoRequest dto) async {
+    
   final response = await http.post(
     Uri.parse('${ApiBaseUrl.baseUrl}/eventos'),
     headers: {

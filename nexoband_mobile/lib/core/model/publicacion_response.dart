@@ -89,10 +89,22 @@ class Banda {
   });
 
   factory Banda.fromJson(Map<String, dynamic> json) {
+    String? imgPerfilUrl;
+    final raw = json['img_perfil'] as String?;
+    if (raw != null && raw.isNotEmpty) {
+      if (raw.startsWith('http://') || raw.startsWith('https://')) {
+        imgPerfilUrl = raw;
+      } else {
+        final filename = raw.split('/').last;
+        if (filename.isNotEmpty) {
+          imgPerfilUrl = 'http://10.0.2.2:8000/storage/bandas/$filename';
+        }
+      }
+    }
     return Banda(
       id:        (json['id'] as num?)?.toInt(),
-      nombre:    json['nombre']    ?? '',
-      imgPerfil: json['img_perfil'] as String?,
+      nombre:    json['nombre'] ?? '',
+      imgPerfil: imgPerfilUrl,
     );
   }
 }
