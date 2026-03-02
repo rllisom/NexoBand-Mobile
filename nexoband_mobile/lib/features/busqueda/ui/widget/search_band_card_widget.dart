@@ -25,14 +25,7 @@ class SearchBandCardWidget extends StatelessWidget {
             // Avatar de banda
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: banda.imgPerfil != null
-                  ? Image.network(
-                      banda.imgPerfil!,
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
+              child: Container(
                       width: 56,
                       height: 56,
                       color: Colors.grey[800],
@@ -54,6 +47,8 @@ class SearchBandCardWidget extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   // Género
@@ -62,6 +57,8 @@ class SearchBandCardWidget extends StatelessWidget {
                       banda.genero!,
                       style: const TextStyle(
                           color: Colors.white54, fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   const SizedBox(height: 8),
                   // Descripción

@@ -34,6 +34,16 @@ class PerfilBloc extends Bloc<PerfilEvent, PerfilState> {
     });
 
 
+    on<EditarDatosPerfil>((event, emit) async {
+      emit(PerfilGuardando());
+      try {
+        final actualizado = await perfilService.editarPerfil(event.usuarioId, event.datos);
+        emit(PerfilGuardado(actualizado));
+      } catch (e) {
+        emit(PerfilGuardadoError(e.toString()));
+      }
+    });
+
     on<EditarImagenPerfil>((event, emit) async {
       emit(ImagenPerfilCargando());
       try {

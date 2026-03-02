@@ -100,20 +100,27 @@ class InstrumentoResponse {
   final String nombre;
   final String? nivel;
   final String? experiencia;
+  final String? generos;
+  final String? descripcion;
 
   InstrumentoResponse({
     required this.id,
     required this.nombre,
     this.nivel,
     this.experiencia,
+    this.generos,
+    this.descripcion,
   });
 
   factory InstrumentoResponse.fromJson(Map<String, dynamic> json) {
+    final pivot = json['pivot'] as Map<String, dynamic>?;
     return InstrumentoResponse(
       id: (json['id'] as num?)?.toInt() ?? 0,
       nombre: json['nombre'] as String? ?? '',
-      nivel: json['nivel'] as String?,
-      experiencia: json['experiencia']?.toString(),
+      nivel: pivot?['nivel'] as String? ?? json['nivel'] as String?,
+      experiencia: (pivot?['experiencia'] ?? json['experiencia'])?.toString(),
+      generos: pivot?['generos'] as String? ?? json['generos'] as String?,
+      descripcion: pivot?['descripcion'] as String? ?? json['descripcion'] as String?,
     );
   }
 }

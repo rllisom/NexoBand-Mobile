@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:nexoband_mobile/core/model/evento_response.dart';
+import 'package:nexoband_mobile/core/service/evento_service.dart';
 import 'package:nexoband_mobile/features/evento/ui/widget/icon_gradient_box.dart';
 
 class EventoDetailSheet {
-  static void show(BuildContext context, EventoResponse evento) {
+  static void show(BuildContext context, EventoResponse evento, {VoidCallback? onEliminado, bool puedeEliminar = false}) {
     final fecha = evento.fecha;
     final fechaFormateada = '${fecha.day}/${fecha.month}/${fecha.year} ${fecha.hour}:${fecha.minute.toString().padLeft(2, '0')}';
 
@@ -34,9 +35,59 @@ class EventoDetailSheet {
                         fontSize: 20,
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white),
-                      onPressed: () => Navigator.of(context).pop(),
+                    Row(
+                      children: [
+                        if (puedeEliminar)
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Color(0xFFef365b)),
+                          tooltip: 'Eliminar evento',
+                          onPressed: () async {
+                            final confirmar = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                backgroundColor: const Color(0xFF232120),
+                                title: const Text('Eliminar evento',
+                                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                content: Text(
+                                  '¿Seguro que quieres eliminar "${evento.nombre}"? Esta acción no se puede deshacer.',
+                                  style: const TextStyle(color: Color(0xFF9ca3af)),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: const Text('Cancelar',
+                                        style: TextStyle(color: Color(0xFF9ca3af))),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    child: const Text('Eliminar',
+                                        style: TextStyle(color: Color(0xFFef365b), fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirmar != true) return;
+                            try {
+                              await EventoService().eliminarEvento(evento.id);
+                              if (context.mounted) Navigator.of(context).pop();
+                              onEliminado?.call();
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error: $e'),
+                                    backgroundColor: const Color(0xFFef365b),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -53,20 +104,7 @@ class EventoDetailSheet {
                 if (evento.bandas.isNotEmpty)
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: Colors.grey[700],
-                        backgroundImage: evento.bandas.first.imgPerfil != null
-                            ? NetworkImage(evento.bandas.first.imgPerfil!)
-                            : null,
-                        child: evento.bandas.first.imgPerfil == null
-                            ? const Icon(
-                                Icons.music_note,
-                                color: Colors.white,
-                                size: 18,
-                              )
-                            : null,
-                      ),
+                      const IconGradientBox(icon: Icons.music_note),
                       const SizedBox(width: 10),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,6 +213,13 @@ class EventoDetailSheet {
                             style: TextStyle(
                               color: Color(0xFFB0B0B0),
                               fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            '${evento.aforo} personas',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
                             ),
                           ),
                         ],

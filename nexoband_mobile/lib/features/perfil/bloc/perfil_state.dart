@@ -28,3 +28,15 @@ class ImagenPerfilError extends PerfilState {
   final String mensaje;
   ImagenPerfilError(this.mensaje);
 }
+
+final class PerfilGuardando extends PerfilState {}
+
+final class PerfilGuardado extends PerfilState {
+  final UsuarioResponse usuario;
+  PerfilGuardado(this.usuario);
+}
+
+final class PerfilGuardadoError extends PerfilState {
+  final String mensaje;
+  PerfilGuardadoError(this.mensaje);
+}

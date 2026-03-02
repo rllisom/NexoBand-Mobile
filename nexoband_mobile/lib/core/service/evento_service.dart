@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:nexoband_mobile/config/api_base_url.dart';
 import 'package:nexoband_mobile/config/guardar_token.dart';
@@ -50,4 +51,20 @@ class EventoService implements EventoInterface {
     throw Exception('Error al crear evento: ${response.statusCode}');
   }
 }
+
+  @override
+  Future<void> eliminarEvento(int eventoId) async {
+    debugPrint('Intentando eliminar evento con ID: $eventoId');
+    final response = await http.delete(
+      Uri.parse('${ApiBaseUrl.baseUrl}/eventos/$eventoId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer ${await GuardarToken.getAuthToken()}',
+      },
+    );
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Error al eliminar evento: ${response.statusCode}');
+    }
+  }
 }

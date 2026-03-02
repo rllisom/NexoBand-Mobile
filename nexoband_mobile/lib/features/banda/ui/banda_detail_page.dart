@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nexoband_mobile/config/guardar_token.dart';
 import 'package:nexoband_mobile/core/model/banda_en_usuario_response.dart';
 import 'package:nexoband_mobile/core/dto/evento_request.dart';
 import 'package:nexoband_mobile/core/dto/publicacion_request.dart';
@@ -12,11 +13,13 @@ import 'package:nexoband_mobile/core/service/publicacion_service.dart';
 import 'package:nexoband_mobile/core/service/search_service.dart';
 import 'package:nexoband_mobile/core/model/usuario_search_response.dart';
 import 'package:nexoband_mobile/features/banda/bloc/banda_bloc.dart';
+import 'package:nexoband_mobile/features/banda/ui/bandas_usuario_page.dart';
 import 'package:nexoband_mobile/features/banda/ui/widget/miembro_card.dart';
 import 'package:nexoband_mobile/features/evento/ui/widget/evento_card.dart';
 import 'package:nexoband_mobile/features/perfil/ui/widget/post_card.dart';
 import 'package:nexoband_mobile/features/publicaciones/bloc/publicacion_bloc.dart';
 import 'package:nexoband_mobile/features/publicaciones/ui/widget/crear_publicacion_modal.dart';
+import 'package:nexoband_mobile/features/banda/ui/editar_banda_page.dart';
 
 class BandaDetailPage extends StatefulWidget {
   final BandaEnUsuarioResponse banda;
@@ -224,7 +227,11 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
             errorStyle: const TextStyle(color: Color(0xFFef365b)),
           );
 
-          return Padding(
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx2).size.height * 0.88,
+            ),
+            child: Padding(
             padding: EdgeInsets.only(
               left: 16, right: 16, top: 20,
               bottom: MediaQuery.of(ctx2).viewInsets.bottom + 24,
@@ -463,6 +470,7 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                 ),
               ),
             ),
+          ),
           );
         },
       ),
@@ -641,11 +649,48 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
             actions: [
               IconButton(
-                icon: const Icon(Icons.settings_outlined, color: Colors.white),
-                onPressed: null,
-              ),
-            ],
+                icon: const Icon(Icons.delete_outline, color: Color(0xFFef365b)),
+                onPressed: () async {
+                  final confirmar = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      backgroundColor: const Color(0xFF232120),
+                      title: const Text('Eliminar banda',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      content: Text(
+                        '¿Seguro que quieres eliminar "${widget.banda.nombre}"? Esta acción no se puede deshacer.',
+                        style: const TextStyle(color: Color(0xFF9ca3af)),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: const Text('Cancelar',
+                              style: TextStyle(color: Color(0xFF9ca3af))),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: const Text('Eliminar',
+                              style: TextStyle(color: Color(0xFFef365b), fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmar != true) return;
+                  try {
+                    await bandaService.eliminarBanda(widget.banda.id);
+                    int userId = await GuardarToken.getUsuarioId();
+                    var user = await PerfilService().getUsuario(userId);
+                    if (mounted) Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (_) => BandasUsuarioPage(bandas: user.bandas)));
+                  } catch (e) {
+                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e')));
+                  }
+                },
+              )
+              ],
           ),
+        
           body: BlocListener<PublicacionBloc, PublicacionState>(
             listener: (context, state) {
               if (state is PublicacionCreada) {
@@ -681,7 +726,6 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                   style: const TextStyle(color: Color(0xFF9ca3af))));
               }
               if (state is BandaDetailLoaded || state is BandaFotoSubiendo) {
-                // Usamos la banda del último BandaDetailLoaded aunque esté subiendo foto
                 final b = state is BandaDetailLoaded
                     ? state.banda
                     : (context.read<BandaBloc>().state is BandaDetailLoaded
@@ -770,7 +814,6 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                                     Row(children: [
                                       _statChip(Icons.people_outline, '${b.usuarios.length}', 'miembros'),
                                       const SizedBox(width: 12),
-                                      _statChip(Icons.favorite_border, '${b.seguidoresCount}', 'seguidores'),
                                     ]),
                                   ],
                                 ),
@@ -789,9 +832,18 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                               foregroundColor: Colors.white,
                               side: const BorderSide(color: Color(0xFFFC7E39)),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             ),
-                            onPressed: null,
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => EditarBandaPage(banda: b)),
+                            ).then((actualizado) {
+                              if (actualizado == true) {
+                                context.read<BandaBloc>().add(
+                                    LoadBandaDetail(widget.banda.id));
+                              }
+                            }),
                             icon: const Icon(Icons.edit_outlined, size: 18, color: Colors.white),
                             label: const Text('Editar banda',
                               style: TextStyle(color: Colors.white, fontSize: 15)),
@@ -857,36 +909,40 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                           ),
 
                           // Miembros
-                          b.usuarios.isEmpty
-                              ? _emptyState(Icons.people_outline, 'Sin miembros')
-                              : ListView.separated(
-                                  padding: const EdgeInsets.all(16),
-                                  itemCount: b.usuarios.length + 1, // +1 para el botón
-                                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                                  itemBuilder: (_, i) {
-                                    if (i == b.usuarios.length) {
-                                      return SizedBox(
-                                        width: double.infinity, height: 44,
-                                        child: OutlinedButton.icon(
-                                          style: OutlinedButton.styleFrom(
-                                            foregroundColor: Colors.white,
-                                            side: const BorderSide(color: Color(0xFFFC7E39)),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                          ),
-                                          onPressed: () => _mostrarAgregarMiembros(context, b.id),
-                                          icon: const Icon(Icons.person_add_outlined,
-                                            size: 17, color: Color(0xFFFC7E39)),
-                                          label: const Text('Agregar miembro',
-                                            style: TextStyle(color: Colors.white, fontSize: 14)),
-                                        ),
-                                      );
-                                    }
-                                    final miembro = b.usuarios[i];
-                                    return MiembroCard(
-                                      miembro: miembro,
-                                    );
-                                  },
+                          Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                                child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      side: const BorderSide(color: Color(0xFFFC7E39)),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    onPressed: () => _mostrarAgregarMiembros(context, b.id),
+                                    icon: const Icon(Icons.person_add_outlined,
+                                        size: 17, color: Color(0xFFFC7E39)),
+                                    label: const Text('Agregar miembro',
+                                        style: TextStyle(color: Colors.white, fontSize: 14)),
+                                  ),
                                 ),
+                              ),
+                              Expanded(
+                                child: b.usuarios.isEmpty
+                                    ? _emptyState(Icons.people_outline, 'Sin miembros')
+                                    : ListView.separated(
+                                        padding: const EdgeInsets.all(16),
+                                        itemCount: b.usuarios.length,
+                                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                                        itemBuilder: (_, i) =>
+                                            MiembroCard(miembro: b.usuarios[i]),
+                                      ),
+                              ),
+                            ],
+                          ),
 
                           // Eventos
                           Column(
@@ -916,7 +972,11 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                                         padding: const EdgeInsets.all(16),
                                         itemCount: b.eventos.length,
                                         separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                        itemBuilder: (_, i) => EventoCard(evento: b.eventos[i]),
+                                        itemBuilder: (_, i) => EventoCard(
+                                            evento: b.eventos[i],
+                                            puedeEliminar: true,
+                                            onEliminado: () => context.read<BandaBloc>().add(LoadBandaDetail(widget.banda.id)),
+                                          ),
                                       ),
                               ),
                             ],

@@ -41,6 +41,26 @@ class PerfilService implements PerfilInterface {
 
   
 
+  Future<UsuarioResponse> editarPerfil(int usuarioId, Map<String, String> datos) async {
+    final token = await GuardarToken.getAuthToken();
+
+    final response = await http.put(
+      Uri.parse('${ApiBaseUrl.baseUrl}/users/$usuarioId'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(datos),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final json = jsonDecode(response.body);
+      return UsuarioResponse.fromJson(json['usuario'] ?? json);
+    }
+    throw Exception('Error al editar el perfil: ${response.statusCode} - ${response.body}');
+  }
+
   Future<String?> editarImagenPerfil(int usuarioId, String imagePath) async {
     final token = await GuardarToken.getAuthToken();
     final uri = Uri.parse(

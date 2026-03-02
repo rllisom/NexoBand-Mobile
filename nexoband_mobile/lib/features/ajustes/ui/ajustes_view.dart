@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nexoband_mobile/features/ajustes/ui/ajustes_crear_banda.dart';
+import 'package:nexoband_mobile/features/ajustes/ui/ajustes_editar_perfil.dart';
 import 'package:nexoband_mobile/features/login/ui/login_page_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,17 +50,12 @@ class _AjustesViewState extends State<AjustesView> {
               const SizedBox(height: 8),
               _buildCard(
                 context,
-                icon: Icons.group,
-                title: 'Ver seguidores',
-                subtitle: 'Personas que te siguen',
-                onTap: () => Navigator.pushNamed(context, '/seguidores'),
-              ),
-              _buildCard(
-                context,
                 icon: Icons.person_add,
-                title: 'Ver seguidos',
-                subtitle: 'Personas que sigues',
-                onTap: () => Navigator.pushNamed(context, '/seguidos'),
+                title: 'Editar perfil',
+                subtitle: 'Actualiza tu información personal',
+                onTap: () => Navigator.push(context, 
+                  MaterialPageRoute(builder: (_) => const AjustesEditarPerfil()),
+                ),
               ),
               _buildCard(
                 context,

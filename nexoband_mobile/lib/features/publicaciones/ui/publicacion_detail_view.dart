@@ -4,7 +4,6 @@ import 'package:nexoband_mobile/core/dto/comentario_request.dart';
 import 'package:nexoband_mobile/core/model/publicacion_response.dart';
 import 'package:nexoband_mobile/core/service/comentario_service.dart';
 import 'package:nexoband_mobile/core/service/perfil_service.dart';
-import 'package:nexoband_mobile/core/service/publicacion_service.dart';
 import 'package:nexoband_mobile/features/banda/ui/banda_ajena_view.dart';
 import 'package:nexoband_mobile/features/perfil/ui/perfil_ajeno_page.dart';
 
@@ -25,15 +24,6 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
   void initState() {
     super.initState();
     _publicacion = widget.publicacion;
-  }
-
-  Future<void> _recargarPublicacion() async {
-    try {
-      final actualizada = await PublicacionService().verDetallePublicacion(_publicacion.id);
-      if (mounted) setState(() => _publicacion = actualizada);
-    } catch (e) {
-      debugPrint('Error al recargar publicación: $e');
-    }
   }
 
   @override
@@ -333,11 +323,11 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
           Container(
             color: const Color(0xFF232120),
             padding: EdgeInsets.only(
-              left: 12,
-              right: 12,
-              top: 8,
-              // Sube el campo cuando aparece el teclado
-              bottom: MediaQuery.of(context).viewInsets.bottom + 8,
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+
             ),
             child: Row(
               children: [
@@ -368,7 +358,11 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                 const SizedBox(width: 8),
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCC5200),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFF13B57), Color(0xFFFC7E39)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: IconButton(
@@ -385,7 +379,12 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                         );
                         try {
                           await ComentarioService().crearComentario(request);
-                          await _recargarPublicacion();
+                          await Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PublicacionDetailView(publicacion: widget.publicacion),
+                            ),
+                          );
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(

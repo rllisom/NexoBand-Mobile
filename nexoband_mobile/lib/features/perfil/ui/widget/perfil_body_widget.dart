@@ -28,6 +28,14 @@ class PerfilBodyWidget extends StatefulWidget {
 class _PerfilBodyWidgetState extends State<PerfilBodyWidget> {
   String? _imagenLocalPath;
   bool _subiendoImagen = false;
+  final PageController _headerPageCtrl = PageController();
+  int _headerPage = 0;
+
+  @override
+  void dispose() {
+    _headerPageCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _editarFotoPerfil() async {
     final picker = ImagePicker();
@@ -101,14 +109,10 @@ class _PerfilBodyWidgetState extends State<PerfilBodyWidget> {
           setState(() => _imagenLocalPath = null);
         }
       },
-      child: Stack(
+      child: Column(
         children: [
           // ── AppBar custom ─────────────────────────────────────
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
+          Container(
               color: const Color(0xFF232120),
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               height: 48,
@@ -142,170 +146,160 @@ class _PerfilBodyWidgetState extends State<PerfilBodyWidget> {
                     const SizedBox.shrink(),
                 ],
               ),
-            ),
           ),
 
           // ── Cabecera del perfil ───────────────────────────────
-          Positioned(
-            top: 48,
-            left: 0,
-            right: 0,
-            child: Container(
+          Container(
               color: const Color(0xFF232120),
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      // ── Avatar + botón editar foto ────────────
-                      Column(
-                        children: [
-                          Stack(
-                            children: [
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
+                  // ── Header deslizable (foto/datos) ────────────
+                  SizedBox(
+                    height: 140,
+                    child: PageView(
+                      controller: _headerPageCtrl,
+                      onPageChanged: (p) => setState(() => _headerPage = p),
+                      children: [
+                        // ── Página 0: Avatar + nombre ─────────────
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              children: [
+                                Stack(
+                                  children: [
+                                    Container(
+                                      width: 80,
+                                      height: 80,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: ClipOval(
+                                        child: _subiendoImagen
+                                            ? const Center(
+                                                child: CircularProgressIndicator(
+                                                  color: Color(0xFFFC7E39),
+                                                  strokeWidth: 2,
+                                                ),
+                                              )
+                                            : _imagenLocalPath != null
+                                            ? Image.file(
+                                                File(_imagenLocalPath!),
+                                                fit: BoxFit.cover,
+                                              )
+                                            : usuario.imgPerfil != null
+                                            ? Image.network(
+                                                usuario.imgPerfil!,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) =>
+                                                    _avatarPlaceholder(),
+                                              )
+                                            : _avatarPlaceholder(),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                child: ClipOval(
-                                  child: _subiendoImagen
-                                      ? const Center(
-                                          child: CircularProgressIndicator(
+                                if (!esPerfilAjeno) ...[
+                                  const SizedBox(height: 6),
+                                  GestureDetector(
+                                    onTap: _subiendoImagen ? null : _editarFotoPerfil,
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.camera_alt_outlined,
+                                            color: Color(0xFFFC7E39), size: 13),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Editar foto',
+                                          style: TextStyle(
                                             color: Color(0xFFFC7E39),
-                                            strokeWidth: 2,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w500,
                                           ),
-                                        )
-                                      : _imagenLocalPath != null
-                                      // Imagen local recién elegida
-                                      ? Image.file(
-                                          File(_imagenLocalPath!),
-                                          fit: BoxFit.cover,
-                                        )
-                                      : usuario.imgPerfil != null
-                                      // Imagen del servidor
-                                      ? Image.network(
-                                          usuario.imgPerfil!,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
-                                              _avatarPlaceholder(),
-                                        )
-                                      : _avatarPlaceholder(),
-                                ),
-                              ),
-                            ],
-                          ),
-                          // Botón editar foto (solo perfil propio)
-                          if (!esPerfilAjeno) ...[
-                            const SizedBox(height: 6),
-                            GestureDetector(
-                              onTap: _subiendoImagen ? null : _editarFotoPerfil,
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.camera_alt_outlined,
-                                    color: Color(0xFFFC7E39),
-                                    size: 13,
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'Editar foto',
-                                    style: TextStyle(
-                                      color: Color(0xFFFC7E39),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
+                                        ),
+                                      ],
                                     ),
                                   ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    '${usuario.nombre} ${usuario.apellidos}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      letterSpacing: -0.44,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '@${usuario.username}',
+                                    style: const TextStyle(
+                                      color: Color(0xFF9ca3af),
+                                      fontSize: 16,
+                                      letterSpacing: -0.31,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
                                 ],
                               ),
                             ),
                           ],
-                        ],
-                      ),
-
-                      const SizedBox(width: 16),
-
-                      // ── Info usuario ──────────────────────────
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${usuario.nombre} ${usuario.apellidos}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                letterSpacing: -0.44,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '@${usuario.username}',
-                              style: const TextStyle(
-                                color: Color(0xFF9ca3af),
-                                fontSize: 16,
-                                letterSpacing: -0.31,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: '${usuario.seguidoresCount} ',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const TextSpan(
-                                        text: 'seguidores',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                RichText(
-                                  text: TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: '${usuario.seguidosCount} ',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const TextSpan(
-                                        text: 'siguiendo',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
                         ),
+
+                        // ── Página 1: Datos de contacto ───────────
+                        SingleChildScrollView(
+                          physics: const NeverScrollableScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (usuario.email.isNotEmpty)
+                                _infoRow(Icons.email_outlined, usuario.email),
+                              if (usuario.telefono != null && usuario.telefono!.isNotEmpty)
+                                _infoRow(Icons.phone_outlined, usuario.telefono!),
+                              if (usuario.provincia != null && usuario.provincia!.isNotEmpty)
+                                _infoRow(Icons.location_city_outlined, usuario.provincia!),
+                              if (usuario.direccion != null && usuario.direccion!.isNotEmpty)
+                                _infoRow(Icons.home_outlined, usuario.direccion!),
+                              if (usuario.nacionalidad != null && usuario.nacionalidad!.isNotEmpty)
+                                _infoRow(Icons.flag_outlined, usuario.nacionalidad!),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ── Indicador de página ───────────────────────
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(2, (i) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: _headerPage == i ? 16 : 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: _headerPage == i
+                            ? const Color(0xFFFC7E39)
+                            : Colors.white24,
+                        borderRadius: BorderRadius.circular(3),
                       ),
-                    ],
+                    )),
                   ),
 
                   const SizedBox(height: 16),
@@ -330,21 +324,16 @@ class _PerfilBodyWidgetState extends State<PerfilBodyWidget> {
                         itemCount: usuario.instrumentos.length,
                         separatorBuilder: (_, __) => const SizedBox(width: 8),
                         itemBuilder: (_, i) => _Badge(
-                          text: usuario.instrumentos[i].nombre,
+                          instrumento: usuario.instrumentos[i],
                         ),
                       ),
                     ),
                 ],
               ),
             ),
-          ),
 
           // ── Contenido scrollable ──────────────────────────────
-          Positioned(
-            top: 260,
-            left: 0,
-            right: 0,
-            bottom: 0,
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -511,9 +500,26 @@ class _PerfilBodyWidgetState extends State<PerfilBodyWidget> {
             ),
           ),
         ],
-      ), 
+      ),
     ); 
   }
+
+  Widget _infoRow(IconData icono, String texto) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          children: [
+            Icon(icono, color: const Color(0xFFFC7E39), size: 14),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                texto,
+                style: const TextStyle(color: Colors.white, fontSize: 13),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      );
 
   Widget _avatarPlaceholder() {
     return Container(
@@ -524,24 +530,106 @@ class _PerfilBodyWidgetState extends State<PerfilBodyWidget> {
 }
 
 class _Badge extends StatelessWidget {
-  final String text;
-  const _Badge({required this.text});
+  final InstrumentoResponse instrumento;
+  const _Badge({required this.instrumento});
+
+  void _mostrarDetalle(BuildContext context) {
+    Widget fila(IconData icono, String etiqueta, String valor) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icono, color: const Color(0xFFFC7E39), size: 16),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(etiqueta,
+                        style: const TextStyle(
+                            color: Color(0xFF9ca3af), fontSize: 11)),
+                    const SizedBox(height: 2),
+                    Text(valor,
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 14)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF232120),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.music_note, color: Color(0xFFFC7E39), size: 22),
+                const SizedBox(width: 10),
+                Text(
+                  instrumento.nombre,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(color: Colors.white12),
+            const SizedBox(height: 12),
+            if (instrumento.nivel != null)
+              fila(Icons.bar_chart_rounded, 'Nivel', instrumento.nivel!),
+            if (instrumento.experiencia != null)
+              fila(Icons.access_time_rounded, 'Experiencia', '${instrumento.experiencia} años'),
+            if (instrumento.generos != null && instrumento.generos!.isNotEmpty)
+              fila(Icons.queue_music_rounded, 'Géneros', instrumento.generos!),
+            if (instrumento.descripcion != null && instrumento.descripcion!.isNotEmpty)
+              fila(Icons.notes_rounded, 'Descripción', instrumento.descripcion!),
+            if (instrumento.nivel == null &&
+                instrumento.experiencia == null &&
+                (instrumento.generos == null || instrumento.generos!.isEmpty) &&
+                (instrumento.descripcion == null || instrumento.descripcion!.isEmpty))
+              const Text(
+                'Sin información adicional',
+                style: TextStyle(color: Color(0xFF9ca3af), fontSize: 14),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 2.5),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2d2a28),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
+    return GestureDetector(
+      onTap: () => _mostrarDetalle(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 2.5),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2d2a28),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
+        ),
+        child: Center(
+          child: Text(
+            instrumento.nombre,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ),
     );

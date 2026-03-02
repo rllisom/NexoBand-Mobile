@@ -108,6 +108,24 @@ class BandaService implements BandaInterfaz {
     }
   }
 
+  /// PUT /bandas/{id}  →  edita los datos de la banda
+  Future<void> editarBanda(int bandaId, BandaRequest request) async {
+    final token = await GuardarToken.getAuthToken();
+    final response = await http.put(
+      Uri.parse('${ApiBaseUrl.baseUrl}/bandas/$bandaId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(request.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Error ${response.statusCode}: ${response.body}');
+    }
+  }
+
   /// POST /users/{userId}/bandas  →  une un usuario a esta banda
   Future<void> agregarMiembro(int bandas_id, int users_id) async {
     final token = await GuardarToken.getAuthToken();
@@ -121,6 +139,22 @@ class BandaService implements BandaInterfaz {
       body: jsonEncode({'users_id': users_id, 'bandas_id': bandas_id}),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Error ${response.statusCode}: ${response.body}');
+    }
+  }
+
+  Future<void> eliminarBanda(int id) async {
+    final token = await GuardarToken.getAuthToken();
+    final response = await http.delete(
+      Uri.parse('${ApiBaseUrl.baseUrl}/bandas/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode != 200) {
       throw Exception('Error ${response.statusCode}: ${response.body}');
     }
   }

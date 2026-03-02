@@ -14,7 +14,6 @@ class ChatListView extends StatefulWidget {
 }
 
 class _ChatListViewState extends State<ChatListView> {
-
   late ChatBloc chatBloc;
 
   @override
@@ -46,12 +45,19 @@ class _ChatListViewState extends State<ChatListView> {
               if (state is ChatsCargados) {
                 final chats = state.chats;
                 if (chats.isEmpty) return const Center(child: Text('No tienes chats activos', style: TextStyle(color: Colors.white, fontSize: 16)));
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: chats.length,
-                  itemBuilder: (context, index) => _ChatTile(
-                    chat: chats[index],
-                    myUserId: myUserId,
+                return RefreshIndicator(
+                  color: const Color(0xFFFC7E39),
+                  backgroundColor: const Color(0xFF232120),
+                  onRefresh: () async =>
+                      context.read<ChatBloc>().add(CargarChats()),
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    itemCount: chats.length,
+                    itemBuilder: (context, index) => _ChatTile(
+                      chat: chats[index],
+                      myUserId: myUserId,
+                    ),
                   ),
                 );
               }

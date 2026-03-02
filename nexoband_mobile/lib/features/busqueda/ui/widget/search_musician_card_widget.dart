@@ -41,12 +41,8 @@ class SearchMusicianCardWidget extends StatelessWidget {
             CircleAvatar(
               radius: 28,
               backgroundColor: Colors.grey[800],
-              backgroundImage: usuario.imgPerfil != null
-                  ? NetworkImage(usuario.imgPerfil!)
-                  : null,
-              child: usuario.imgPerfil == null
-                  ? const Icon(Icons.person, color: Colors.white54, size: 28)
-                  : null,
+              child: Icon(Icons.person, color: Colors.white54, size: 28)
+                  
             ),
             const SizedBox(width: 14),
             // Info

@@ -17,3 +17,9 @@ final class EliminarPublicacion extends PerfilEvent {
   final int publicacionId;
   EliminarPublicacion(this.publicacionId);
 }
+
+final class EditarDatosPerfil extends PerfilEvent {
+  final int usuarioId;
+  final Map<String, String> datos;
+  EditarDatosPerfil(this.usuarioId, this.datos);
+}

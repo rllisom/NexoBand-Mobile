@@ -34,8 +34,8 @@ class _PublicacionViewState extends State<PublicacionView> {
   /// Inserta publicidad cada [frecuencia] publicaciones
   List<ItemFeed> _insertarPublicidad(List publicaciones, {int frecuencia = 4}) {
     final List<ItemFeed> feedConPublicidad = [];
-    
-    // Publicidades activas de ejemplo (en producción vendrían del backend)
+
+
     final publicidadesDisponibles = [
       Publicidad(
         nombreEmpresa: 'Sala Apolo',
@@ -94,10 +94,7 @@ class _PublicacionViewState extends State<PublicacionView> {
     int indicePublicidad = 0;
 
     for (int i = 0; i < publicaciones.length; i++) {
-      // Agregar la publicación normal
       feedConPublicidad.add(ItemFeed.publicacion(publicaciones[i]));
-
-      // Cada [frecuencia] publicaciones, insertar un anuncio
       if ((i + 1) % frecuencia == 0 && publicidadesActivas.isNotEmpty) {
         feedConPublicidad.add(
           ItemFeed.publicidad(

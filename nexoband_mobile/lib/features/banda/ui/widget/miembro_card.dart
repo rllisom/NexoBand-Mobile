@@ -5,6 +5,7 @@ import 'package:nexoband_mobile/core/service/perfil_service.dart';
 import 'package:nexoband_mobile/features/perfil/ui/perfil_ajeno_page.dart';
 
 class MiembroCard extends StatelessWidget {
+
   final UsuarioBanda miembro;
 
   const MiembroCard({

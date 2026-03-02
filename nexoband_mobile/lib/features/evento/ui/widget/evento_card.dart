@@ -4,10 +4,14 @@ import 'package:nexoband_mobile/features/evento/ui/widget/evento_detail_sheet.da
 
 class EventoCard extends StatelessWidget {
   final EventoResponse evento;
+  final VoidCallback? onEliminado;
+  final bool puedeEliminar;
 
   const EventoCard({
     super.key,
     required this.evento,
+    this.onEliminado,
+    this.puedeEliminar = false,
   });
 
   @override
@@ -16,7 +20,7 @@ class EventoCard extends StatelessWidget {
     final fechaFormateada = '${fecha.day}/${fecha.month}/${fecha.year} ${fecha.hour}:${fecha.minute.toString().padLeft(2, '0')}';
 
     return GestureDetector(
-      onTap: () => EventoDetailSheet.show(context, evento),
+      onTap: () => EventoDetailSheet.show(context, evento, onEliminado: onEliminado, puedeEliminar: puedeEliminar),
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF232323),
@@ -27,19 +31,18 @@ class EventoCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-              child: evento.bandas.isNotEmpty && evento.bandas.first.imgPerfil != null
-                  ? Image.network(
-                      evento.bandas.first.imgPerfil!,
-                      height: 180,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
-                      height: 180,
-                      width: double.infinity,
-                      color: const Color(0xFF3A3A3A),
-                      child: const Icon(Icons.event, color: Colors.white54, size: 60),
-                    ),
+              child: Container(
+                height: 180,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF2d2a28), Color(0xFF3a3530)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: const Icon(Icons.event, color: Color(0xFFFC7E39), size: 64),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
