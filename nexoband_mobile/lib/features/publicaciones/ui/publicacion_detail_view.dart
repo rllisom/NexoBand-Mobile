@@ -6,6 +6,8 @@ import 'package:nexoband_mobile/core/service/comentario_service.dart';
 import 'package:nexoband_mobile/core/service/perfil_service.dart';
 import 'package:nexoband_mobile/features/banda/ui/banda_ajena_view.dart';
 import 'package:nexoband_mobile/features/perfil/ui/perfil_ajeno_page.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/widget/audio_player_widget.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/widget/video_player_widget.dart';
 
 class PublicacionDetailView extends StatefulWidget {
   final Publicacion publicacion;
@@ -166,31 +168,37 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                           ),
                         ),
 
-                      // Imagen multimedia
+                      // Multimedia (imagen / audio / vídeo)
                       if (pub.multimedia != null &&
-                          pub.multimedia!.url.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.network(
-                            pub.multimedia!.url,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                const SizedBox.shrink(),
-                            loadingBuilder: (context, child, progress) {
-                              if (progress == null) return child;
-                              return const SizedBox(
-                                height: 200,
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                      color: Colors.white54),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                          pub.multimedia!.url.isNotEmpty) ...
+                        [
+                          const SizedBox(height: 16),
+                          if (pub.multimedia!.tipo.startsWith('audio'))
+                            AudioPlayerWidget(url: pub.multimedia!.url)
+                          else if (pub.multimedia!.tipo.startsWith('video'))
+                            VideoPlayerWidget(url: pub.multimedia!.url)
+                          else
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.network(
+                                pub.multimedia!.url,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    const SizedBox.shrink(),
+                                loadingBuilder: (context, child, progress) {
+                                  if (progress == null) return child;
+                                  return const SizedBox(
+                                    height: 200,
+                                    child: Center(
+                                      child: CircularProgressIndicator(
+                                          color: Colors.white54),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                        ],
 
                       const SizedBox(height: 16),
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:nexoband_mobile/core/model/banda_search_response.dart';
 import 'package:nexoband_mobile/core/model/evento_response.dart';
 import 'package:nexoband_mobile/core/service/evento_service.dart';
+import 'package:nexoband_mobile/core/service/search_service.dart';
 import 'package:nexoband_mobile/features/evento/ui/widget/icon_gradient_box.dart';
 
 class EventoDetailSheet {
@@ -83,6 +85,20 @@ class EventoDetailSheet {
                             }
                           },
                         ),
+                        if (puedeEliminar)
+                          IconButton(
+                            icon: const Icon(Icons.group_add, color: Color(0xFF4ADE80)),
+                            tooltip: 'Agregar banda',
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => _BandaPickerDialog(
+                                  eventoId: evento.id,
+                                  bandasExistentes: evento.bandas.map((b) => b.id).toList(),
+                                ),
+                              );
+                            },
+                          ),
                         IconButton(
                           icon: const Icon(Icons.close, color: Colors.white),
                           onPressed: () => Navigator.of(context).pop(),
@@ -116,13 +132,18 @@ class EventoDetailSheet {
                               fontSize: 14,
                             ),
                           ),
-                          Text(
-                            evento.bandas.map((b) => b.nombre).join(', '),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: evento.bandas
+                                .map((b) => Text(
+                                      b.nombre,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ))
+                                .toList(),
                           ),
                         ],
                       ),
@@ -235,4 +256,201 @@ class EventoDetailSheet {
       ),
     );
   }
+}
+
+// ── Diálogo para buscar y añadir una banda a un evento ──────────────────────
+class _BandaPickerDialog extends StatefulWidget {
+  final int eventoId;
+  final List<int> bandasExistentes;
+
+  const _BandaPickerDialog({
+    required this.eventoId,
+    required this.bandasExistentes,
+  });
+
+  @override
+  State<_BandaPickerDialog> createState() => _BandaPickerDialogState();
+}
+
+class _BandaPickerDialogState extends State<_BandaPickerDialog> {
+  final TextEditingController _ctrl = TextEditingController();
+  final SearchService _searchService = SearchService();
+  final EventoService _eventoService = EventoService();
+
+  List<BandaSearchResponse> _resultados = [];
+  bool _buscando = false;
+  bool _agregando = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _buscar(String query) async {
+    if (query.trim().isEmpty) {
+      setState(() => _resultados = []);
+      return;
+    }
+    setState(() {
+      _buscando = true;
+      _error = null;
+    });
+    try {
+      final resultados = await _searchService.buscarBandas(query.trim());
+      setState(() => _resultados = resultados);
+    } catch (e) {
+      setState(() => _error = 'Error al buscar bandas');
+    } finally {
+      setState(() => _buscando = false);
+    }
+  }
+
+  Future<void> _agregar(BandaSearchResponse banda) async {
+    setState(() => _agregando = true);
+    try {
+      await _eventoService.agregarBanda(widget.eventoId, banda.id);
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('"${banda.nombre}" agregada al evento'),
+            backgroundColor: const Color(0xFF22c55e),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _agregando = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: const Color(0xFF232323),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Agregar banda',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white54, size: 20),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _ctrl,
+              autofocus: true,
+              style: const TextStyle(color: Colors.white),
+              onChanged: _buscar,
+              decoration: InputDecoration(
+                hintText: 'Buscar banda por nombre...',
+                hintStyle: const TextStyle(color: Color(0xFF888888)),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF888888)),
+                filled: true,
+                fillColor: const Color(0xFF2C2B29),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+            if (_error != null) ...
+              [
+                const SizedBox(height: 8),
+                Text(_error!, style: const TextStyle(color: Color(0xFFef365b), fontSize: 13)),
+              ],
+            if (_buscando)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(child: CircularProgressIndicator(color: Color(0xFFFC7E39))),
+              )
+            else if (_resultados.isNotEmpty)
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 260),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.only(top: 12),
+                  itemCount: _resultados.length,
+                  separatorBuilder: (_, __) => const Divider(
+                    color: Color(0xFF3A3A3A),
+                    height: 1,
+                  ),
+                  itemBuilder: (context, i) {
+                    final banda = _resultados[i];
+                    final yaAgregada = widget.bandasExistentes.contains(banda.id);
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      leading: ClipOval(
+                        child: banda.imgPerfil != null
+                            ? Image.network(
+                                banda.imgPerfil!,
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => _avatarFallback(),
+                              )
+                            : _avatarFallback(),
+                      ),
+                      title: Text(
+                        banda.nombre,
+                        style: const TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: banda.genero != null
+                          ? Text(banda.genero!,
+                              style: const TextStyle(
+                                  color: Color(0xFF9ca3af), fontSize: 12))
+                          : null,
+                      trailing: yaAgregada
+                          ? const Icon(Icons.check_circle,
+                              color: Color(0xFF22c55e), size: 22)
+                          : _agregando
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    color: Color(0xFFFC7E39), strokeWidth: 2))
+                              : IconButton(
+                                  icon: const Icon(Icons.add_circle_outline,
+                                      color: Color(0xFF4ADE80)),
+                                  onPressed: () => _agregar(banda),
+                                ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _avatarFallback() => Container(
+        width: 40,
+        height: 40,
+        color: const Color(0xFF3A3A3A),
+        child: const Icon(Icons.music_note, color: Colors.white54, size: 20),
+      );
 }

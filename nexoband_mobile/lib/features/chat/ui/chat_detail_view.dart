@@ -162,70 +162,91 @@ class _ChatDetailViewState extends State<ChatDetailView> {
       ),
       body: Column(
         children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _mensajes.length,
-              itemBuilder: (context, index) {
-                final mensaje = _mensajes[index];
-                final esMio = mensaje.usersId == _myUserId;
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: Row(
-                    mainAxisAlignment: esMio
-                        ? MainAxisAlignment.end
-                        : MainAxisAlignment.start,
-                    children: [
-                      Container(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.7,
+            Expanded(
+              child: RefreshIndicator(
+                color: Color(0xFFFF5F6D),
+                backgroundColor: Color(0xFF232120),
+                onRefresh: () async {
+                  try {
+                    final chatActualizado =
+                        await ChatService().cargarChat(widget.chat.id);
+                    setState(() {
+                      _mensajes = List.from(chatActualizado.mensajes);
+                    });
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error al recargar: $e'),
+                          backgroundColor: Colors.red,
                         ),
-                        decoration: BoxDecoration(
-                          gradient: esMio
-                              ? const LinearGradient(
-                                  colors: [
-                                    Color(0xFFFF5F6D),
-                                    Color.fromARGB(255, 250, 180, 83),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                )
-                              : null,
-                          color: esMio ? null : const Color(0xFF3A3A3A),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              mensaje.texto ?? '',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                              ),
+                      );
+                    }
+                  }
+                },
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _mensajes.length,
+                  itemBuilder: (context, index) {
+                    final mensaje = _mensajes[index];
+                    final esMio = mensaje.usersId == _myUserId;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        mainAxisAlignment: esMio
+                            ? MainAxisAlignment.end
+                            : MainAxisAlignment.start,
+                        children: [
+                          Container(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.of(context).size.width * 0.7,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${mensaje.createdAt.hour.toString().padLeft(2, '0')}:${mensaje.createdAt.minute.toString().padLeft(2, '0')}',
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 12,
-                              ),
+                            decoration: BoxDecoration(
+                              gradient: esMio
+                                  ? const LinearGradient(
+                                      colors: [
+                                        Color(0xFFFF5F6D),
+                                        Color.fromARGB(255, 250, 180, 83),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    )
+                                  : null,
+                              color: esMio ? null : const Color(0xFF3A3A3A),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                          ],
-                        ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  mensaje.texto ?? '',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${mensaje.createdAt.hour.toString().padLeft(2, '0')}:${mensaje.createdAt.minute.toString().padLeft(2, '0')}',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  },
+                ),
+              ),
             ),
-          ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: const BoxDecoration(color: Color(0xFF232120)),

@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nexoband_mobile/core/model/publicacion_response.dart';
 import 'package:nexoband_mobile/core/service/publicacion_service.dart';
 import 'package:nexoband_mobile/features/perfil/bloc/perfil_bloc.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/widget/audio_player_widget.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/widget/video_player_widget.dart';
 
 class PostCard extends StatelessWidget {
   final Publicacion publicacion;
@@ -152,18 +154,25 @@ class PostCard extends StatelessWidget {
                   color: Colors.white, fontSize: 14, height: 1.4),
             ),
           ],
-          // Imagen multimedia
-          if (tieneImagen) ...[
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                publicacion.multimedia!.url,
-                fit: BoxFit.cover,
-                width: double.infinity,
-              ),
-            ),
-          ],
+          // Multimedia (imagen / audio / vídeo)
+          if (tieneImagen) ...
+            [
+              const SizedBox(height: 10),
+              if (publicacion.multimedia!.tipo.startsWith('audio'))
+                AudioPlayerWidget(url: publicacion.multimedia!.url)
+              else if (publicacion.multimedia!.tipo.startsWith('video'))
+                VideoPlayerWidget(url: publicacion.multimedia!.url)
+              else
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    publicacion.multimedia!.url,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                ),
+            ],
           const SizedBox(height: 12),
           // Acciones — solo comentarios
           Row(

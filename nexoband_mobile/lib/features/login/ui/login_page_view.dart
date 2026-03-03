@@ -120,7 +120,7 @@ class _LoginPageViewState extends State<LoginPageView> {
                                   keyboardType: TextInputType.emailAddress,
                                   style: TextStyle(color: Colors.white),
                                   decoration: InputDecoration(
-                                    labelText: 'Email:',
+                                    labelText: 'Email',
                                     labelStyle: TextStyle(
                                       color: Color(0xFFFC7E39),
                                       fontWeight: FontWeight.bold,
@@ -155,7 +155,7 @@ class _LoginPageViewState extends State<LoginPageView> {
                                   obscureText: true,
                                   style: TextStyle(color: Colors.white),
                                   decoration: InputDecoration(
-                                    labelText: 'Contraseña:',
+                                    labelText: 'Contraseña',
                                     labelStyle: TextStyle(
                                       color: Color(0xFFFC7E39),
                                       fontWeight: FontWeight.bold,

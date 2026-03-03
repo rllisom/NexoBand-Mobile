@@ -67,4 +67,21 @@ class EventoService implements EventoInterface {
       throw Exception('Error al eliminar evento: ${response.statusCode}');
     }
   }
+
+  @override
+  Future<void> agregarBanda(int eventoId, int bandaId) async {
+    final response = await http.post(
+      Uri.parse('${ApiBaseUrl.baseUrl}/eventos/${eventoId}/bandas'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer ${await GuardarToken.getAuthToken()}',
+      },
+      body: jsonEncode({'bandas_id': bandaId}),
+    );
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      final msg = jsonDecode(response.body)['error'] ?? response.statusCode.toString();
+      throw Exception(msg);
+    }
+  }
 }

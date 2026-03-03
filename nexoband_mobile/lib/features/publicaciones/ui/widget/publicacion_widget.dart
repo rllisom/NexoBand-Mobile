@@ -4,6 +4,8 @@ import 'package:nexoband_mobile/core/service/perfil_service.dart';
 import 'package:nexoband_mobile/features/perfil/ui/perfil_ajeno_page.dart';
 import 'package:nexoband_mobile/features/banda/ui/banda_ajena_view.dart';
 import 'package:nexoband_mobile/features/publicaciones/ui/publicacion_detail_view.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/widget/audio_player_widget.dart';
+import 'package:nexoband_mobile/features/publicaciones/ui/widget/video_player_widget.dart';
 
 class PublicacionWidget extends StatefulWidget {
   final Publicacion publicacion;
@@ -134,27 +136,32 @@ class _PublicacionWidgetState extends State<PublicacionWidget> {
                 ),
               ),
 
-            // ── Imagen multimedia ─────────────────────────────
+            // ── Imagen o audio multimedia ─────────────────────
             if (multimedia != null && multimedia.url.isNotEmpty) ...[
               const SizedBox(height: 10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  multimedia.url,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const SizedBox(
-                      height: 180,
-                      child: Center(
-                        child: CircularProgressIndicator(color: Colors.white54),
-                      ),
-                    );
-                  },
+              if (multimedia.tipo.startsWith('audio'))
+                AudioPlayerWidget(url: multimedia.url)
+              else if (multimedia.tipo.startsWith('video'))
+                VideoPlayerWidget(url: multimedia.url)
+              else
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    multimedia.url,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const SizedBox(
+                        height: 180,
+                        child: Center(
+                          child: CircularProgressIndicator(color: Colors.white54),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
             ],
 
             const Divider(color: Colors.white12, height: 20),

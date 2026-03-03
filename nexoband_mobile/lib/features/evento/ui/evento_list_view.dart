@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:nexoband_mobile/core/model/evento_response.dart';
 import 'package:nexoband_mobile/core/service/evento_service.dart';
 import 'package:nexoband_mobile/features/evento/bloc/evento_bloc.dart';
 import 'package:nexoband_mobile/features/evento/ui/widget/evento_card.dart';
-import 'package:nexoband_mobile/features/evento/ui/widget/map_icon_button.dart';
 import 'package:nexoband_mobile/features/evento/ui/widget/map_marker.dart';
 
 class EventoListView extends StatefulWidget {
@@ -17,12 +18,34 @@ class EventoListView extends StatefulWidget {
 class _EventoListViewState extends State<EventoListView> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
-  bool _buscadorVisible = false;
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  LatLng? _parseCoord(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    final parts = raw.split(',');
+    if (parts.length < 2) return null;
+    final lat = double.tryParse(parts[0].trim());
+    final lng = double.tryParse(parts[1].trim());
+    if (lat == null || lng == null) return null;
+    return LatLng(lat, lng);
+  }
+
+  LatLng _computeCenter(List<EventoResponse> eventos) {
+    final coords = eventos
+        .map((e) => _parseCoord(e.coordenadas))
+        .whereType<LatLng>()
+        .toList();
+    if (coords.isEmpty) return const LatLng(40.4637, -3.7492);
+    final lat =
+        coords.map((c) => c.latitude).reduce((a, b) => a + b) / coords.length;
+    final lng =
+        coords.map((c) => c.longitude).reduce((a, b) => a + b) / coords.length;
+    return LatLng(lat, lng);
   }
 
   List<EventoResponse> _filtrar(List<EventoResponse> eventos) {
@@ -58,93 +81,118 @@ class _EventoListViewState extends State<EventoListView> {
               );
             } else if (state is EventosCargados) {
               final eventosFiltrados = _filtrar(state.eventos);
-
-              if (eventosFiltrados.isEmpty) {
-                return Center(
-                  child: Text(
-                    _query.isEmpty
-                        ? 'No hay eventos próximos'
-                        : 'No se encontraron eventos para "$_query"',
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              }
+              final markers = eventosFiltrados
+                  .map((e) {
+                    final coord = _parseCoord(e.coordenadas);
+                    if (coord == null) return null;
+                    return Marker(
+                      point: coord,
+                      width: 36,
+                      height: 36,
+                      child: const MapMarker(),
+                    );
+                  })
+                  .whereType<Marker>()
+                  .toList();
+              final center = _computeCenter(eventosFiltrados);
 
               return Column(
                 children: [
-                  if (!_buscadorVisible)
-                    Container(
-                      margin: const EdgeInsets.all(16),
-                      height: 180,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF232323),
-                        borderRadius: BorderRadius.all(Radius.circular(24)),
-                      ),
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: CustomPaint(painter: GridMapPainter()),
-                          ),
-                          ...List.generate(
-                            eventosFiltrados.length > 3
-                                ? 3
-                                : eventosFiltrados.length,
-                            (i) => Positioned(
-                              left: 60.0 + (i * 80),
-                              top: 40.0 + (i * 30),
-                              child: const MapMarker(),
-                            ),
-                          ),
-                          Positioned(
-                            right: 12,
-                            top: 24,
-                            child: Column(
-                              children: [
-                                MapIconButton(icon: Icons.add),
-                                const SizedBox(height: 12),
-                                MapIconButton(icon: Icons.search),
-                              ],
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 16,
-                            right: 16,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              child: Text(
-                                '${eventosFiltrados.length} eventos próximos',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
+                  // ── Buscador ──────────────────────────────────────
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: TextField(
+                      controller: _searchController,
+                      style: const TextStyle(color: Colors.white),
+                      onChanged: (value) => setState(() => _query = value),
+                      decoration: InputDecoration(
+                        hintText: 'Buscar evento...',
+                        hintStyle:
+                            const TextStyle(color: Color(0xFF888888)),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF888888),
+                        ),
+                        suffixIcon: _query.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(
+                                  Icons.clear,
+                                  color: Color(0xFF888888),
                                 ),
-                              ),
-                            ),
-                          ),
-                        ],
+                                onPressed: () => setState(() {
+                                  _searchController.clear();
+                                  _query = '';
+                                }),
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: const Color(0xFF232323),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding:
+                            const EdgeInsets.symmetric(vertical: 12),
                       ),
-                    ),
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      itemCount: eventosFiltrados.length,
-                      itemBuilder: (context, index) {
-                        return Column(
-                          children: [
-                            EventoCard(evento: eventosFiltrados[index]),
-                            const SizedBox(height: 16),
-                          ],
-                        );
-                      },
                     ),
                   ),
+                  // ── Mapa real ────────────────────────────────────
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 4),
+                    height: 200,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      color: const Color(0xFF232323),
+                    ),
+                    clipBehavior: Clip.hardEdge,
+                    child: FlutterMap(
+                      key: ValueKey('map_${center.latitude}_${center.longitude}_${markers.length}'),
+                      options: MapOptions(
+                        initialCenter: center,
+                        initialZoom: markers.isEmpty ? 5.5 : 7.0,
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate:
+                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.nexoband.mobile',
+                        ),
+                        if (markers.isNotEmpty)
+                          MarkerLayer(markers: markers),
+                      ],
+                    ),
+                  ),
+                  // ── Lista de eventos ─────────────────────────────
+                  if (eventosFiltrados.isEmpty)
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          _query.isEmpty
+                              ? 'No hay eventos próximos'
+                              : 'No se encontraron eventos para "$_query"',
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 16),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        itemCount: eventosFiltrados.length,
+                        itemBuilder: (context, index) {
+                          return Column(
+                            children: [
+                              EventoCard(evento: eventosFiltrados[index]),
+                              const SizedBox(height: 16),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
                 ],
               );
             }
@@ -156,21 +204,4 @@ class _EventoListViewState extends State<EventoListView> {
   }
 }
 
-class GridMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF3A3A3A)
-      ..strokeWidth = 1;
 
-    for (double y = 0; y < size.height; y += 20) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-    for (double x = 0; x < size.width; x += 20) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

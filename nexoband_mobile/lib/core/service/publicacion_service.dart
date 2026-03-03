@@ -53,8 +53,7 @@ class PublicacionService implements PublicacionInterface {
     // Campos de texto
     final fields = request.toFields();
 
-    debugPrint('📤 Fields: $fields');
-    debugPrint('📤 Multimedia: ${multimedia?.path}');
+
     multipartRequest.fields.addAll(fields);
 
     
@@ -69,8 +68,6 @@ class PublicacionService implements PublicacionInterface {
     final streamed = await multipartRequest.send();
     final response = await http.Response.fromStream(streamed);
 
-    debugPrint('📥 Status: ${response.statusCode}');
-    debugPrint('📥 Body: ${response.body}');
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final jsonResponse = json.decode(response.body);

@@ -1,4 +1,5 @@
 // widgets/crear_publicacion_modal.dart
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nexoband_mobile/core/model/banda_en_usuario_response.dart';
@@ -25,7 +26,7 @@ class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
   String? _autorSeleccionadoId;
   String _autorSeleccionadoTipo = 'usuario'; 
   XFile? _multimediaSeleccionada;
-  final ImagePicker _picker = ImagePicker();
+  String? _tipoMultimedia;
 
 
   String limpiarUrlImagen(String? url, {String carpeta = 'perfiles'}) {
@@ -175,17 +176,21 @@ class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
             ),
             child: ElevatedButton.icon(
               onPressed: _seleccionarMultimedia,
-              icon: _multimediaSeleccionada != null 
-                  ? const Icon(Icons.check, color: Colors.green) 
+              icon: _multimediaSeleccionada != null
+                  ? const Icon(Icons.check, color: Colors.green)
                   : const Icon(Icons.add_photo_alternate, color: Colors.white),
-              label: Text(_multimediaSeleccionada != null 
-                  ? 'Cambiar multimedia' 
-                  : 'Añadir foto/video',style: TextStyle(color: Colors.white),),
+              label: Text(
+                _multimediaSeleccionada != null
+                    ? 'Cambiar multimedia'
+                    : 'Añadir foto / audio / vídeo',
+                style: const TextStyle(color: Colors.white),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
                 minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ),
@@ -201,7 +206,15 @@ class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.image, color: Color(0xFFFC7E39), size: 20),
+                  Icon(
+                    _tipoMultimedia == 'audio'
+                        ? Icons.audiotrack
+                        : _tipoMultimedia == 'video'
+                            ? Icons.videocam
+                            : Icons.image,
+                    color: const Color(0xFFFC7E39),
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -211,7 +224,10 @@ class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => setState(() => _multimediaSeleccionada = null),
+                    onTap: () => setState(() {
+                      _multimediaSeleccionada = null;
+                      _tipoMultimedia = null;
+                    }),
                     child: const Icon(Icons.close, color: Colors.white38, size: 18),
                   ),
                 ],
@@ -267,12 +283,30 @@ class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
   }
 
   Future<void> _seleccionarMultimedia() async {
-    final XFile? imagen = await _picker.pickImage(source: ImageSource.gallery);
-    if (imagen != null) {
-      setState(() {
-        _multimediaSeleccionada = imagen;
-      });
-    }
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: [
+        // Imágenes
+        'jpg', 'jpeg', 'png', 'gif', 'webp',
+        // Vídeos
+        'mp4', 'mov', 'avi', 'mkv',
+        // Audio
+        'mp3', 'wav', 'aac', 'ogg', 'm4a', 'flac',
+      ],
+      allowMultiple: false,
+    );
+    if (result == null || result.files.single.path == null) return;
+    final path = result.files.single.path!;
+    final ext = path.split('.').last.toLowerCase();
+    final tipo = const {
+      'mp3': 'audio', 'wav': 'audio', 'aac': 'audio',
+      'ogg': 'audio', 'm4a': 'audio', 'flac': 'audio',
+      'mp4': 'video', 'mov': 'video', 'avi': 'video', 'mkv': 'video',
+    }[ext] ?? 'image';
+    setState(() {
+      _multimediaSeleccionada = XFile(path);
+      _tipoMultimedia = tipo;
+    });
   }
 
   void _publicar() {

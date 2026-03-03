@@ -5,4 +5,5 @@ abstract class EventoInterface {
   Future<List<EventoResponse>> cargarEventos({bool soloProximos = true});
   Future<EventoResponse> crearEvento(EventoRequest dto);
   Future<void> eliminarEvento(int eventoId);
+  Future<void> agregarBanda(int eventoId, int bandaId);
 }
