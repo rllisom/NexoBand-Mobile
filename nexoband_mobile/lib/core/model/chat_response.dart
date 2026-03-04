@@ -83,10 +83,18 @@ class Usuario {
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) {
+    String? imgPerfilUrl;
+    if (json['img_perfil'] != null) {
+      final raw = json['img_perfil'] as String;
+      final filename = raw.split('/').last;
+      if (filename.isNotEmpty) {
+        imgPerfilUrl = 'http://10.0.2.2:8000/storage/perfiles/$filename';
+      }
+    }
     return Usuario(
       id: (json['id'] as num?)?.toInt() ?? 0,
       username: json['username'] as String?,
-      imgPerfil: json['img_perfil'] as String?,
+      imgPerfil: imgPerfilUrl,
     );
   }
 }

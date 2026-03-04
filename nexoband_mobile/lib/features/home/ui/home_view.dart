@@ -5,6 +5,7 @@ import 'package:nexoband_mobile/core/service/chat_service.dart';
 import 'package:nexoband_mobile/core/service/comentario_service.dart';
 import 'package:nexoband_mobile/core/service/perfil_service.dart';
 import 'package:nexoband_mobile/core/service/publicacion_service.dart';
+import 'package:nexoband_mobile/core/service/publicidad_service.dart';
 import 'package:nexoband_mobile/features/busqueda/ui/search_view.dart';
 import 'package:nexoband_mobile/features/chat/bloc/chat_bloc.dart';
 import 'package:nexoband_mobile/features/chat/ui/chat_list_view.dart';
@@ -29,7 +30,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   void initState() {
     super.initState();
-    publicacionBloc = PublicacionBloc(PublicacionService(),ComentarioService())
+    publicacionBloc = PublicacionBloc(PublicacionService(),ComentarioService(),PublicidadService())
       ..add(CargarPublicacionesUsuario());
     chatBloc = ChatBloc(ChatService())
       ..add(CargarChats());

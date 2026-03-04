@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:nexoband_mobile/config/guardar_token.dart';
 import 'package:nexoband_mobile/core/model/banda_en_usuario_response.dart';
+import 'package:nexoband_mobile/core/model/banda_response.dart';
+import 'package:nexoband_mobile/core/service/banda_service.dart';
+import 'package:nexoband_mobile/features/banda/ui/banda_ajena_view.dart';
 import 'package:nexoband_mobile/features/banda/ui/banda_detail_page.dart';
 
 class BandaCard extends StatelessWidget {
@@ -10,11 +14,14 @@ class BandaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
+        final esPropietario = await _esPropietario();
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => BandaDetailPage(banda: banda),
+            builder: (_) => esPropietario
+                ? BandaDetailPage(banda: banda)
+                : BandaAjenaView(bandaId: banda.id),
           ),
         );
       },
@@ -31,15 +38,7 @@ class BandaCard extends StatelessWidget {
             // Imagen de la banda
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: banda.imagen != null
-                  ? Image.network(
-                      banda.imagen!,
-                      width: 72,
-                      height: 72,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _placeholderImagen(),
-                    )
-                  : _placeholderImagen(),
+              child: _placeholderImagen(),
             ),
             const SizedBox(width: 12),
             // Nombre, descripción y rol
@@ -69,7 +68,9 @@ class BandaCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF2d2a28),
                         borderRadius: BorderRadius.circular(8),
@@ -87,10 +88,7 @@ class BandaCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(
-              Icons.chevron_right,
-              color: Color(0xFF9ca3af),
-            ),
+            const Icon(Icons.chevron_right, color: Color(0xFF9ca3af)),
           ],
         ),
       ),
@@ -107,5 +105,14 @@ class BandaCard extends StatelessWidget {
       ),
       child: const Icon(Icons.music_note, color: Color(0xFF9ca3af), size: 30),
     );
+  }
+
+  Future<bool> _esPropietario() async {
+    final usuarioId = await GuardarToken.getUsuarioId();
+    final BandaResponse bandaDetails = await BandaService().getBandaDetail(
+      banda.id,
+    );
+
+    return bandaDetails.usuarios.any((u) => u.id == usuarioId);
   }
 }

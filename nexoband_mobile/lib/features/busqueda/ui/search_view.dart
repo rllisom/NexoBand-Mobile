@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nexoband_mobile/config/guardar_token.dart';
 import 'package:nexoband_mobile/core/service/search_service.dart';
 import 'package:nexoband_mobile/features/busqueda/bloc/search_bloc.dart';
 import 'package:nexoband_mobile/features/busqueda/ui/widget/search_band_card_widget.dart';
@@ -72,7 +73,7 @@ class _SearchViewState extends State<SearchView> {
                 controller: _controller,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  hintText: 'Buscar músicos, bandas, instrumentos...',
+                  hintText: 'Buscar músicos, bandas...',
                   hintStyle:
                       const TextStyle(color: Colors.white54),
                   filled: true,
@@ -109,7 +110,7 @@ class _SearchViewState extends State<SearchView> {
                   if (state is SearchInitial) {
                     return const Center(
                       child: Text(
-                        'Busca músicos por nombre, instrumento o género...',
+                        'Busca músicos por nombre...',
                         style: TextStyle(
                             color: Colors.white54, fontSize: 16),
                         textAlign: TextAlign.center,
@@ -141,11 +142,25 @@ class _SearchViewState extends State<SearchView> {
                       children: [
                         if (state.usuarios.isNotEmpty) ...[
                           const _SeccionHeader(titulo: 'Músicos'),
-                          ...state.usuarios.map((u) => Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: SearchMusicianCardWidget(
-                                    usuario: u),
-                              )),
+                          FutureBuilder<int>(
+                            future: GuardarToken.getUsuarioId(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const SizedBox.shrink();
+                              }
+                              if (snapshot.hasData) {
+                                final usuarioId = snapshot.data!;
+                                final usuariosFiltrados = state.usuarios.where((u) => u.id != usuarioId).toList();
+                                return Column(
+                                  children: usuariosFiltrados.map((u) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: SearchMusicianCardWidget(usuario: u),
+                                  )).toList(),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
                         ],
                         if (state.bandas.isNotEmpty) ...[
                           const _SeccionHeader(titulo: 'Bandas'),

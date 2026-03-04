@@ -18,11 +18,13 @@ class PublicacionView extends StatefulWidget {
 
 class _PublicacionViewState extends State<PublicacionView> {
   late PublicacionBloc _bloc;
+  final PublicidadService publicidadService = PublicidadService();
+  Future<List<ItemFeed>>? _feedFuture;
 
   @override
   void initState() {
     super.initState();
-    _bloc = PublicacionBloc(PublicacionService(),ComentarioService());
+    _bloc = PublicacionBloc(PublicacionService(), ComentarioService(), publicidadService);
     _bloc.add(CargarFeed());
   }
 
@@ -38,10 +40,10 @@ class _PublicacionViewState extends State<PublicacionView> {
 
     List<Publicidad> publicidadesActivas = [];
     try {
-      final todas = await PublicidadService().listarPublicidad();
+      final todas = await publicidadService.listarPublicidad();
       publicidadesActivas = todas.where((pub) => pub.estaActivo).toList();
-    } catch (_) {
-       // Si falla la carga de publicidad, el feed se muestra sin anuncios
+    } catch (e) {
+       debugPrint('[Publicidad] Error al cargar publicidad: $e');
     }
 
     if (publicidadesActivas.isEmpty) {
@@ -70,7 +72,14 @@ class _PublicacionViewState extends State<PublicacionView> {
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: _bloc,
-      child: BlocBuilder<PublicacionBloc, PublicacionState>(
+      child: BlocConsumer<PublicacionBloc, PublicacionState>(
+        listener: (context, state) {
+          if (state is FeedCargado) {
+            setState(() {
+              _feedFuture = _insertarPublicidad(state.publicaciones);
+            });
+          }
+        },
         builder: (context, state) {
 
           // ── Cargando ──────────────────────────────────────
@@ -181,8 +190,13 @@ class _PublicacionViewState extends State<PublicacionView> {
           // ── Feed cargado ──────────────────────────────────
           if (state is FeedCargado) {
             return FutureBuilder<List<ItemFeed>>(
-              future: _insertarPublicidad(state.publicaciones),
+              future: _feedFuture,
               builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFFFC7E39)),
+                  );
+                }
                 final feed = snapshot.data ?? state.publicaciones
                     .map((p) => ItemFeed.publicacion(p))
                     .toList();

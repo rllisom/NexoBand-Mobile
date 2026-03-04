@@ -47,5 +47,16 @@ class BandaBloc extends Bloc<BandaEvent, BandaState> {
         emit(AgregarMiembroError('Error al agregar miembro: $e'));
       }
     });
+
+    on<EliminarMiembroBanda>((event, emit) async {
+      emit(EliminarMiembroLoading());
+      try {
+        await bandaService.eliminarMiembro(event.bandaId, event.userId);
+        emit(MiembroEliminado());
+      } catch (e) {
+        emit(EliminarMiembroError('Error al eliminar miembro: $e'));
+      }
+    });
   }
+
 }

@@ -28,6 +28,15 @@ class BandaCreacionError extends BandaState {
   BandaCreacionError(this.mensaje);
 }
 
+//---Eliminar banda --------------------------------
+class EliminandoBanda extends BandaState {}
+class BandaEliminada extends BandaState {}
+class BandaEliminacionError extends BandaState {
+  final String mensaje;
+  BandaEliminacionError(this.mensaje);
+}
+
+
 // ── Editar banda ─────────────────────────────────────────────────────
 class EditandoBanda extends BandaState {}
 
@@ -49,4 +58,14 @@ class MiembroAgregado extends BandaState {}
 class AgregarMiembroError extends BandaState {
   final String mensaje;
   AgregarMiembroError(this.mensaje);
+}
+
+//------Eliminar miembro─────────────────────────────────────────────────────
+class EliminarMiembroLoading extends BandaState {}
+
+class MiembroEliminado extends BandaState {}
+
+class EliminarMiembroError extends BandaState {
+  final String mensaje;
+  EliminarMiembroError(this.mensaje);
 }

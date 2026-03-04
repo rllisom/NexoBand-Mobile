@@ -135,7 +135,6 @@ class _BandaAjenaViewState extends State<BandaAjenaView> {
                                     Row(children: [
                                       _statChip(Icons.people_outline, '${b.usuarios.length}', 'miembros'),
                                       const SizedBox(width: 12),
-                                      _statChip(Icons.favorite_border, '${b.seguidoresCount}', 'seguidores'),
                                     ]),
                                   ],
                                 ),
@@ -172,7 +171,6 @@ class _BandaAjenaViewState extends State<BandaAjenaView> {
                     Expanded(
                       child: TabBarView(
                         children: [
-                          // Posts (sin botón "Nueva publicación")
                           b.publicaciones == null || b.publicaciones!.isEmpty
                               ? _emptyState(Icons.image_outlined, 'Sin publicaciones')
                               : ListView.separated(
@@ -182,8 +180,6 @@ class _BandaAjenaViewState extends State<BandaAjenaView> {
                                   itemBuilder: (_, i) =>
                                       PostCard(publicacion: b.publicaciones![i]),
                                 ),
-
-                          // Miembros (sin botón "Agregar miembro")
                           b.usuarios.isEmpty
                               ? _emptyState(Icons.people_outline, 'Sin miembros')
                               : ListView.separated(
@@ -192,7 +188,7 @@ class _BandaAjenaViewState extends State<BandaAjenaView> {
                                   separatorBuilder: (_, __) => const SizedBox(height: 8),
                                   itemBuilder: (_, i) {
                                     final miembro = b.usuarios[i];
-                                    return MiembroCard(miembro: miembro);
+                                    return MiembroCard(miembro: miembro, bandaId: b.id);
                                   },
                                 ),
 

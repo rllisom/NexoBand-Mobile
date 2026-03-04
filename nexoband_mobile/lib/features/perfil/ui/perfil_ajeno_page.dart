@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nexoband_mobile/core/dto/chat_request.dart';
 import 'package:nexoband_mobile/core/model/user_response.dart';
 import 'package:nexoband_mobile/core/service/chat_service.dart';
-import 'package:nexoband_mobile/features/banda/ui/bandas_usuario_page.dart';
+import 'package:nexoband_mobile/features/banda/ui/bandas_ajenas_page.dart';
 import 'package:nexoband_mobile/features/chat/ui/chat_detail_view.dart';
 import 'package:nexoband_mobile/features/perfil/ui/widget/post_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -269,7 +269,7 @@ class _PerfilAjenoPageState extends State<PerfilAjenoPage> {
                           onPressed: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => BandasUsuarioPage(bandas: usuario.bandas),
+                              builder: (_) => BandasAjenasPage(bandas: usuario.bandas),
                             ),
                           ),
                           icon: const Icon(Icons.groups, color: Colors.white, size: 20),

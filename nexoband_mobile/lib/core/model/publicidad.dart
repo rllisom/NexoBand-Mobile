@@ -32,7 +32,7 @@ class Publicidad {
       nombreEmpresa: json['nombre_empresa'] ?? '',
       tipoEmpresa: json['tipo_empresa'] ?? '',
       icono: json['icono'] ?? '📢',
-      estado: json['estado'] ?? true,
+      estado: json['estado'] == true || json['estado'] == 1,
       fechaInicio: json['fecha_inicio'] != null
           ? DateTime.parse(json['fecha_inicio'])
           : DateTime.now(),

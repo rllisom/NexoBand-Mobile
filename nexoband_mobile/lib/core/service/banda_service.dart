@@ -78,11 +78,11 @@ class BandaService implements BandaInterfaz {
 
   Future<void> editarImagenPerfil(int bandaId, String imagePath) async {
     final uri = Uri.parse('${ApiBaseUrl.baseUrl}/bandas/$bandaId/imagen_perfil');
-    final multipartRequest = http.MultipartRequest('POST', uri);
+    final token = await GuardarToken.getAuthToken();
 
-    multipartRequest.headers.addAll({
-      'Authorization': 'Bearer ${await GuardarToken.getAuthToken()}',
-    });
+    final multipartRequest = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..headers['Accept'] = 'application/json';
 
     final extension = imagePath.split('.').last.toLowerCase();
     final mimeSubtype = switch (extension) {
@@ -92,7 +92,7 @@ class BandaService implements BandaInterfaz {
       _      => 'jpeg',
     };
 
-    multipartRequest.files.add(
+    multipartRequest.files.add( 
       await http.MultipartFile.fromPath(
         'img_perfil',
         imagePath,
@@ -100,11 +100,11 @@ class BandaService implements BandaInterfaz {
       ),
     );
 
-    final response = await multipartRequest.send();
-    final responseBody = await response.stream.bytesToString();
+    final streamed = await multipartRequest.send();
+    final response = await http.Response.fromStream(streamed);
 
-    if (response.statusCode != 200) {
-      throw Exception('Error ${response.statusCode}: $responseBody');
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Error ${response.statusCode}: ${response.body}');
     }
   }
 
@@ -139,6 +139,22 @@ class BandaService implements BandaInterfaz {
       body: jsonEncode({'users_id': users_id, 'bandas_id': bandas_id}),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Error ${response.statusCode}: ${response.body}');
+    }
+  }
+
+  Future<void> eliminarMiembro(int bandas_id, int users_id) async {
+    final token = await GuardarToken.getAuthToken();
+    final response = await http.delete(
+      Uri.parse('${ApiBaseUrl.baseUrl}/users/$users_id/bandas/$bandas_id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'users_id': users_id, 'bandas_id': bandas_id}),
+    );
+    if (response.statusCode != 200) {
       throw Exception('Error ${response.statusCode}: ${response.body}');
     }
   }

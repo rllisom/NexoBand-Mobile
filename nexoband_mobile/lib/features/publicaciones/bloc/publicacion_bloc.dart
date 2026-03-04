@@ -16,6 +16,7 @@ class PublicacionBloc extends Bloc<PublicacionEvent, PublicacionState> {
   PublicacionBloc(
     PublicacionService publicacionService,
     ComentarioService comentarioService,
+    PublicidadService publicidadService,
   ) : super(PublicacionInitial()) {
     on<CargarPublicacionesUsuario>((event, emit) async {
       emit(PublicacionesCargando());
@@ -87,7 +88,8 @@ class PublicacionBloc extends Bloc<PublicacionEvent, PublicacionState> {
     on<MostrarPublicidades>((event, emit) async {
       emit(MostrandoPublicidad());
       try {
-        final publicidades = await PublicidadService().listarPublicidad();
+        final publicidades = await publicidadService.listarPublicidad();
+        
         emit(PublicidadMostrada(publicidades));
       } catch (e) {
         emit(PublicidadError(e.toString()));

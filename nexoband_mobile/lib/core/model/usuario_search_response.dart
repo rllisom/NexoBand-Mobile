@@ -20,12 +20,20 @@ class UsuarioSearchResponse {
   });
 
   factory UsuarioSearchResponse.fromJson(Map<String, dynamic> json) {
+    String? imgPerfilUrl;
+    if (json['img_perfil'] != null) {
+      final raw = json['img_perfil'] as String;
+      final filename = raw.split('/').last;
+      if (filename.isNotEmpty) {
+        imgPerfilUrl = 'http://10.0.2.2:8000/storage/perfiles/$filename';
+      }
+    }
     return UsuarioSearchResponse(
       id: (json['id'] as num?)?.toInt() ?? 0,
       nombre: json['nombre'] as String? ?? '',
       apellidos: json['apellidos'] as String? ?? '',
       username: json['username'] as String? ?? '',
-      imgPerfil: json['img_perfil'] as String?,
+      imgPerfil: imgPerfilUrl,
       descripcion: json['descripcion'] as String?,
       instrumentos: List<Map<String, dynamic>>.from(json['instrumentos'] ?? []),
       seguidoresCount: (json['seguidores_count'] as num?)?.toInt() ?? 0,

@@ -15,6 +15,10 @@ class CrearBanda extends BandaEvent {
   CrearBanda(this.bandaRequest);
 }
 
+class EliminarBanda extends BandaEvent {
+  final int bandaId;
+  EliminarBanda(this.bandaId);
+}
 
 class EditarFotoPerfilBanda extends BandaEvent {  // ✅ NUEVO
   final int bandaId;
@@ -27,4 +31,10 @@ class AgregarMiembroBanda extends BandaEvent {
   final int bandaId;
   final int userId;
   AgregarMiembroBanda(this.bandaId, this.userId);
+}
+
+class EliminarMiembroBanda extends BandaEvent {
+  final int bandaId;
+  final int userId;
+  EliminarMiembroBanda(this.bandaId, this.userId);
 }
