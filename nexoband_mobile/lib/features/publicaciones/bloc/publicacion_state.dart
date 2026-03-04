@@ -79,3 +79,17 @@ class DetallePublicacionError extends PublicacionState {
   final String mensaje;
   DetallePublicacionError(this.mensaje);
 }
+
+//-------------------Mostrar publicidad en feed----------------
+
+class MostrandoPublicidad extends PublicacionState {}
+
+class PublicidadMostrada extends PublicacionState {
+  final List<Publicidad> publicidades;
+  PublicidadMostrada(this.publicidades);
+}
+
+class PublicidadError extends PublicacionState {
+  final String mensaje;
+  PublicidadError(this.mensaje);
+}

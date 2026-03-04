@@ -30,3 +30,5 @@ final class EnviarComentario extends PublicacionEvent {
   EnviarComentario(this.request);
 }
 
+
+final class MostrarPublicidades extends PublicacionEvent {}

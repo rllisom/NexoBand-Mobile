@@ -4,8 +4,10 @@ import 'package:meta/meta.dart';
 import 'package:nexoband_mobile/core/dto/comentario_request.dart';
 import 'package:nexoband_mobile/core/dto/publicacion_request.dart';
 import 'package:nexoband_mobile/core/model/publicacion_response.dart';
+import 'package:nexoband_mobile/core/model/publicidad.dart';
 import 'package:nexoband_mobile/core/service/comentario_service.dart';
 import 'package:nexoband_mobile/core/service/publicacion_service.dart';
+import 'package:nexoband_mobile/core/service/publicidad_service.dart';
 
 part 'publicacion_event.dart';
 part 'publicacion_state.dart';
@@ -79,6 +81,16 @@ class PublicacionBloc extends Bloc<PublicacionEvent, PublicacionState> {
         emit(DetallePublicacionCargado(response));
       } catch (e) {
         emit(DetallePublicacionError(e.toString()));
+      }
+    });
+
+    on<MostrarPublicidades>((event, emit) async {
+      emit(MostrandoPublicidad());
+      try {
+        final publicidades = await PublicidadService().listarPublicidad();
+        emit(PublicidadMostrada(publicidades));
+      } catch (e) {
+        emit(PublicidadError(e.toString()));
       }
     });
   }

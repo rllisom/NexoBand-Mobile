@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:nexoband_mobile/config/api_base_url.dart';
@@ -56,8 +55,7 @@ class PublicacionService implements PublicacionInterface {
 
     multipartRequest.fields.addAll(fields);
 
-    
-
+  
     // Archivo opcional
     if (multimedia != null) {
       multipartRequest.files.add(
@@ -135,7 +133,7 @@ class PublicacionService implements PublicacionInterface {
     );
   }
 
-  // ── Helper: parsear respuesta a lista de Publicacion ─────────────────────
+
   List<Publicacion> _parseLista(dynamic decoded) {
     if (decoded is List) {
       return decoded
