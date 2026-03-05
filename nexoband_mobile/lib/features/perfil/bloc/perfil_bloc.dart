@@ -18,7 +18,7 @@ class PerfilBloc extends Bloc<PerfilEvent, PerfilState> {
         final usuario = await perfilService.cargarPerfil();
         emit(PerfilCargado(usuario));
       } catch (e) {
-        emit(PerfilError(e.toString()));
+        emit(PerfilError(e.toString().replaceFirst('Exception: ', '')));
       }
     });
 
@@ -29,7 +29,7 @@ class PerfilBloc extends Bloc<PerfilEvent, PerfilState> {
         final usuario = await perfilService.cargarPerfil();
         emit(PerfilCargado(usuario));
       } catch (e) {
-        emit(PerfilError(e.toString()));
+        emit(PerfilError(e.toString().replaceFirst('Exception: ', '')));
       }
     });
 
@@ -40,7 +40,7 @@ class PerfilBloc extends Bloc<PerfilEvent, PerfilState> {
         final actualizado = await perfilService.editarPerfil(event.usuarioId, event.datos);
         emit(PerfilGuardado(actualizado));
       } catch (e) {
-        emit(PerfilGuardadoError(e.toString()));
+        emit(PerfilGuardadoError(e.toString().replaceFirst('Exception: ', '')));
       }
     });
 
@@ -62,7 +62,7 @@ class PerfilBloc extends Bloc<PerfilEvent, PerfilState> {
         emit(PerfilCargado(usuarioActualizado)); // 👈 Estado final
         
       } catch (e) {
-        emit(ImagenPerfilError(e.toString()));
+        emit(ImagenPerfilError(e.toString().replaceFirst('Exception: ', '')));
       }
     });
 

@@ -3,7 +3,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nexoband_mobile/core/model/banda_en_usuario_response.dart';
+import 'package:nexoband_mobile/core/model/banda_response.dart';
 import 'package:nexoband_mobile/core/model/user_response.dart';
+import 'package:nexoband_mobile/core/service/banda_service.dart';
 
 class CrearPublicacionModal extends StatefulWidget {
   final UsuarioResponse usuarioActual;
@@ -24,10 +26,27 @@ class CrearPublicacionModal extends StatefulWidget {
 class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
   final TextEditingController _textoController = TextEditingController();
   String? _autorSeleccionadoId;
-  String _autorSeleccionadoTipo = 'usuario'; 
+  String _autorSeleccionadoTipo = 'usuario';
   XFile? _multimediaSeleccionada;
   String? _tipoMultimedia;
+  final Map<int, BandaResponse> _bandasDetalle = {};
+  String? _errorTexto;
 
+  @override
+  void initState() {
+    super.initState();
+    _cargarDetallesBandas();
+  }
+
+  Future<void> _cargarDetallesBandas() async {
+    final service = BandaService();
+    for (final banda in widget.bandasUsuario) {
+      try {
+        final detalle = await service.getBandaDetail(banda.id);
+        if (mounted) setState(() => _bandasDetalle[banda.id] = detalle);
+      } catch (_) {}
+    }
+  }
 
   String limpiarUrlImagen(String? url, {String carpeta = 'perfiles'}) {
     if (url == null || url.isEmpty) return '';
@@ -61,6 +80,8 @@ class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 isExpanded: true,
+                dropdownColor: Colors.grey[900],
+                iconEnabledColor: Colors.white,
                 value: _autorSeleccionadoTipo == 'usuario'
                     ? 'usuario_${widget.usuarioActual.id}'
                     : (_autorSeleccionadoId != null
@@ -101,14 +122,15 @@ class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
                     value: 'banda_${banda.id}',
                     child: Row(
                       children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: Colors.blue[800],
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Icon(Icons.music_note, size: 18, color: Colors.white),
+                        CircleAvatar(
+                          radius: 16,
+                          backgroundImage: _bandasDetalle[banda.id]?.imgPerfil != null
+                              ? NetworkImage(_bandasDetalle[banda.id]!.imgPerfil!)
+                              : null,
+                          backgroundColor: Colors.grey[700],
+                          child: _bandasDetalle[banda.id]?.imgPerfil == null
+                              ? const Icon(Icons.music_note, size: 18, color: Colors.white)
+                              : null,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -140,24 +162,37 @@ class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
           const SizedBox(height: 20),
           
           //Input texto
-          TextField(
-            controller: _textoController,
-            maxLines: 4,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: '¿Qué quieres compartir?',
-              hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.white, width: 2),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: _textoController,
+                maxLines: 4,
+                maxLength: 500,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: '¿Qué quieres compartir?',
+                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.white, width: 2),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.white, width: 2),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[900],
+                ),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.white, width: 2),
-              ),
-              filled: true,
-              fillColor: Colors.grey[900],
-            ),
+              if (_errorTexto != null) ...[
+                const SizedBox(height: 6),
+                Text(
+                  _errorTexto!,
+                  style: const TextStyle(color: Color(0xFFF13B57), fontSize: 13),
+                ),
+              ],
+            ],
           ),
           
           const SizedBox(height: 20),
@@ -310,8 +345,18 @@ class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
   }
 
   void _publicar() {
+    final texto = _textoController.text.trim();
+    if (texto.isEmpty) {
+      setState(() {
+        _errorTexto = 'El texto de la publicación no puede estar vacío';
+      });
+      return;
+    }
+    setState(() {
+      _errorTexto = null;
+    });
     widget.onPublicar(
-      _textoController.text.trim(),
+      texto,
       _autorSeleccionadoId,
       _autorSeleccionadoTipo,
       _multimediaSeleccionada,

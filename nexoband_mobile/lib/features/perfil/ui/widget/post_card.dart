@@ -21,9 +21,13 @@ class PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nombre = publicacion.banda?.nombre ??
-        '${publicacion.user?.nombre ?? ''} ${publicacion.user?.apellidos ?? ''}'.trim();
-    final imagen = publicacion.banda?.imgPerfil ?? publicacion.user?.imgPerfil;
+    final esBanda = publicacion.banda != null;
+    final nombre = esBanda
+        ? publicacion.banda!.nombre
+        : '${publicacion.user?.nombre ?? ''} ${publicacion.user?.apellidos ?? ''}'.trim();
+    final imagen = esBanda
+        ? publicacion.banda!.imgPerfil
+        : publicacion.user?.imgPerfil;
     final tieneImagen = publicacion.multimedia?.url != null;
 
     return Container(
@@ -53,16 +57,22 @@ class PostCard extends StatelessWidget {
                               width: 40,
                               height: 40,
                               color: Colors.grey[800],
-                              child: const Icon(Icons.person,
-                                  color: Colors.white54, size: 20),
+                              child: Icon(
+                                esBanda ? Icons.music_note : Icons.person,
+                                color: Colors.white54,
+                                size: 20,
+                              ),
                             ),
                           )
                         : Container(
                             width: 40,
                             height: 40,
                             color: Colors.grey[800],
-                            child: const Icon(Icons.person,
-                                color: Colors.white54, size: 20),
+                            child: Icon(
+                              esBanda ? Icons.music_note : Icons.person,
+                              color: Colors.white54,
+                              size: 20,
+                            ),
                           ),
                   ),
                   const SizedBox(width: 10),
@@ -101,31 +111,31 @@ class PostCard extends StatelessWidget {
                     return IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red, size: 15,),
                       onPressed: () {
+                        final parentContext = context;
                         showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
+                          context: parentContext,
+                          builder: (dialogContext) => AlertDialog(
                             title: const Text('Eliminar publicación'),
                             content: const Text('¿Estás seguro de que quieres eliminar esta publicación?'),
                             actions: [
                               TextButton(
-                                onPressed: () => Navigator.pop(context),
+                                onPressed: () => Navigator.pop(dialogContext),
                                 child: const Text('Cancelar'),
                               ),
                               TextButton(
                                 onPressed: () async {
-                                  try{
+                                  Navigator.pop(dialogContext);
+                                  try {
                                     await PublicacionService().eliminarPublicacion(publicacion.id);
-                                    if (context.mounted) {
-                                      Navigator.pop(context);
-                                      BlocProvider.of<PerfilBloc>(context).add(CargarPerfil());
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                    if (parentContext.mounted) {
+                                      BlocProvider.of<PerfilBloc>(parentContext).add(CargarPerfil());
+                                      ScaffoldMessenger.of(parentContext).showSnackBar(
                                         const SnackBar(content: Text('Publicación eliminada')),
                                       );
                                     }
-                                  }catch(e){
-                                    if (context.mounted) {
-                                      Navigator.pop(context);
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                  } catch (e) {
+                                    if (parentContext.mounted) {
+                                      ScaffoldMessenger.of(parentContext).showSnackBar(
                                         SnackBar(content: Text('Error al eliminar: $e')),
                                       );
                                     }

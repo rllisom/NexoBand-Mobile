@@ -87,7 +87,8 @@ class BandaResponse {
     // Solo en show()
     publicaciones: (json['publicaciones'] as List?)
         ?.map((p) => Publicacion.fromJson(p))
-        .toList(),
+        .toList()
+        ?..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
     seguidores: (json['seguidores'] as List?)
         ?.map((s) => SeguidorBanda.fromJson(s))
         .toList(),

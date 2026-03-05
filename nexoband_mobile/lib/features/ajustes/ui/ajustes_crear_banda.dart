@@ -232,6 +232,7 @@ class _AjustesCrearBandaState extends State<AjustesCrearBanda> {
                   children: [
                     TextFormField(
                       controller: _nombreController,
+                      maxLength: 50,
                       style: const TextStyle(color: Colors.white, fontSize: 15),
                       decoration: _fieldDecoration(
                         'Nombre de la banda *',
@@ -243,6 +244,7 @@ class _AjustesCrearBandaState extends State<AjustesCrearBanda> {
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _generoController,
+                      maxLength: 100,
                       style: const TextStyle(color: Colors.white, fontSize: 15),
                       decoration: _fieldDecoration(
                         'Estilos musicales (opcional)',

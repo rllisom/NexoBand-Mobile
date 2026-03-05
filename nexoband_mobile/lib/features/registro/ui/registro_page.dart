@@ -143,7 +143,7 @@ class _RegisterPageViewState extends State<RegisterPageView> {
           } else if (state is RegistroFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error: ${state.errorMessage}'),
+                content: Text(state.errorMessage),
                 backgroundColor: Colors.red,
               ),
             );

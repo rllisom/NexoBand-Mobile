@@ -16,7 +16,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         final chats = await chatService.cargarChats();
         emit(ChatsCargados(chats));
       } catch (e) {
-        emit(ChatsCargaError(e.toString()));
+        emit(ChatsCargaError(e.toString().replaceFirst('Exception: ', '')));
       }
     });
   }

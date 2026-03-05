@@ -150,6 +150,7 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
     final descripcionCtrl = TextEditingController();
     final aforoCtrl = TextEditingController();
     DateTime? fechaSeleccionada;
+    String? fechaError;
     bool enviando = false;
 
     await showModalBottomSheet(
@@ -198,6 +199,7 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
             );
             if (hora == null) return;
             setSheetState(() {
+              fechaError = null;
               fechaSeleccionada = DateTime(
                 fecha.year,
                 fecha.month,
@@ -286,6 +288,7 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                             return 'El nombre es obligatorio';
                           }
                           if (v.trim().length < 3) return 'Mínimo 3 caracteres';
+                          if (v.trim().length > 255) return 'Máximo 255 caracteres';
                           return null;
                         },
                       ),
@@ -334,6 +337,17 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                           ),
                         ),
                       ),
+                      if (fechaError != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6, left: 4),
+                          child: Text(
+                            fechaError!,
+                            style: const TextStyle(
+                              color: Color(0xFFef365b),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 12),
 
                       // ── Lugar ─────────────────────────────────────────
@@ -345,6 +359,7 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                           if (v == null || v.trim().isEmpty) {
                             return 'El lugar es obligatorio';
                           }
+                          if (v.trim().length > 255) return 'Máximo 255 caracteres';
                           return null;
                         },
                       ),
@@ -360,6 +375,7 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return null;
+                          if (v.trim().length > 255) return 'Máximo 255 caracteres';
                           final regex = RegExp(
                             r'^-?\d{1,3}\.\d+,\s*-?\d{1,3}\.\d+$',
                           );
@@ -377,6 +393,11 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                         style: const TextStyle(color: Colors.white),
                         decoration: inputDeco('Descripción', hint: 'Opcional'),
                         maxLines: 3,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return null;
+                          if (v.trim().length > 2000) return 'Máximo 2000 caracteres';
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 12),
 
@@ -389,9 +410,8 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return null;
                           final n = int.tryParse(v.trim());
-                          if (n == null || n <= 0) {
-                            return 'Introduce un número positivo';
-                          }
+                          if (n == null) return 'Introduce un número entero';
+                          if (n < 0) return 'El aforo no puede ser negativo';
                           return null;
                         },
                       ),
@@ -411,18 +431,12 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                           onPressed: enviando
                               ? null
                               : () async {
+                                  final formValido = formKey.currentState!.validate();
                                   if (fechaSeleccionada == null) {
-                                    ScaffoldMessenger.of(ctx).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Selecciona una fecha y hora',
-                                        ),
-                                        backgroundColor: Color(0xFFef365b),
-                                      ),
-                                    );
+                                    setSheetState(() => fechaError = 'La fecha y hora son obligatorias');
                                     return;
                                   }
-                                  if (!formKey.currentState!.validate()) return;
+                                  if (!formValido) return;
 
                                   setSheetState(() => enviando = true);
                                   try {
@@ -448,7 +462,8 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                                           : int.parse(aforoCtrl.text.trim()),
                                       bandasId: bandaId,
                                     );
-                                    await eventoService.crearEvento(dto);
+                                    final eventoCreado = await eventoService.crearEvento(dto);
+                                    await eventoService.agregarBanda(eventoCreado.id, bandaId);
                                     if (mounted) {
                                       Navigator.pop(sheetCtx);
                                       ScaffoldMessenger.of(ctx).showSnackBar(
@@ -459,7 +474,7 @@ class _BandaDetailPageState extends State<BandaDetailPage> {
                                           backgroundColor: Color(0xFF22c55e),
                                         ),
                                       );
-                                      context.read<BandaBloc>().add(
+                                      ctx.read<BandaBloc>().add(
                                         LoadBandaDetail(bandaId),
                                       );
                                     }

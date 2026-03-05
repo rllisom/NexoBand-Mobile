@@ -18,12 +18,11 @@ class BandaBloc extends Bloc<BandaEvent, BandaState> {
         final banda = await bandaService.getBandaDetail(event.bandaId);
         emit(BandaDetailLoaded(banda));
       } catch (e) {
-        emit(BandaDetailError('Error: $e'));
+        emit(BandaDetailError(e.toString().replaceFirst('Exception: ', '')));
       }
     });
 
-    on<EditarFotoPerfilBanda>((event, emit) async {  // ✅ NUEVO
-
+    on<EditarFotoPerfilBanda>((event, emit) async {  
       final estadoActual = state;
       emit(BandaFotoSubiendo());
       try {
@@ -34,7 +33,7 @@ class BandaBloc extends Bloc<BandaEvent, BandaState> {
       } catch (e) {
         // Restaura el estado anterior si falla
         if (estadoActual is BandaDetailLoaded) emit(estadoActual);
-        emit(BandaDetailError('Error al subir la imagen: $e'));
+        emit(BandaDetailError(e.toString().replaceFirst('Exception: ', '')));
       }
     });
 
@@ -44,7 +43,7 @@ class BandaBloc extends Bloc<BandaEvent, BandaState> {
         await bandaService.agregarMiembro(event.bandaId, event.userId);
         emit(MiembroAgregado());
       } catch (e) {
-        emit(AgregarMiembroError('Error al agregar miembro: $e'));
+        emit(AgregarMiembroError(e.toString().replaceFirst('Exception: ', '')));
       }
     });
 
@@ -54,7 +53,7 @@ class BandaBloc extends Bloc<BandaEvent, BandaState> {
         await bandaService.eliminarMiembro(event.bandaId, event.userId);
         emit(MiembroEliminado());
       } catch (e) {
-        emit(EliminarMiembroError('Error al eliminar miembro: $e'));
+        emit(EliminarMiembroError(e.toString().replaceFirst('Exception: ', '')));
       }
     });
   }

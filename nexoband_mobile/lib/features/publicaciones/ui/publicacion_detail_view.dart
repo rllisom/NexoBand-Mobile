@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nexoband_mobile/config/guardar_token.dart';
 import 'package:nexoband_mobile/core/dto/comentario_request.dart';
 import 'package:nexoband_mobile/core/model/publicacion_response.dart';
+import 'package:nexoband_mobile/core/model/user_response.dart';
 import 'package:nexoband_mobile/core/service/comentario_service.dart';
 import 'package:nexoband_mobile/core/service/perfil_service.dart';
 import 'package:nexoband_mobile/features/banda/ui/banda_ajena_view.dart';
@@ -20,6 +21,7 @@ class PublicacionDetailView extends StatefulWidget {
 class _PublicacionDetailViewState extends State<PublicacionDetailView> {
   final TextEditingController _comentarioController = TextEditingController();
   final PerfilService perfilService = PerfilService();
+  final ComentarioService _comentarioService = ComentarioService();
   late Publicacion _publicacion;
 
   @override
@@ -34,19 +36,43 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
     super.dispose();
   }
 
+  Future<void> _refrescar() async {
+    try {
+      final comentarios = await _comentarioService.listarComentarios(
+        _publicacion.id,
+      );
+      if (mounted) {
+        setState(() {
+          _publicacion = Publicacion(
+            id: _publicacion.id,
+            titulo: _publicacion.titulo,
+            contenido: _publicacion.contenido,
+            createdAt: _publicacion.createdAt,
+            updatedAt: _publicacion.updatedAt,
+            user: _publicacion.user,
+            banda: _publicacion.banda,
+            multimedia: _publicacion.multimedia,
+            comentarios: comentarios,
+          );
+        });
+      }
+    } catch (e) {
+      debugPrint('Error al refrescar comentarios: $e');
+    }
+  }
+
   String _formatearHora(DateTime fecha) {
     return '${fecha.hour.toString().padLeft(2, '0')}:'
         '${fecha.minute.toString().padLeft(2, '0')} '
         '· ${fecha.day}/${fecha.month}/${fecha.year}';
   }
 
-  Future<String> _obtenerUserName(int userId) async {
+  Future<UsuarioResponse?> _obtenerUsuario(int userId) async {
     try {
-      final userResponse = await perfilService.getUsuario(userId);
-      return userResponse.username;
-    } catch (error) {
-      debugPrint('Error al cargar usuario $userId: $error');
-      return 'Usuario';
+      return await perfilService.getUsuario(userId);
+    } catch (e) {
+      debugPrint('Error al cargar usuario $userId: $e');
+      return null;
     }
   }
 
@@ -54,13 +80,13 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
   Widget build(BuildContext context) {
     final pub = _publicacion;
 
-    final String autorNombre = pub.banda?.nombre
-        ?? pub.user?.username
-        ?? 'Usuario desconocido';
+    final String autorNombre =
+        pub.banda?.nombre ?? pub.user?.username ?? 'Usuario desconocido';
 
-    final String autorImagen = pub.banda?.imgPerfil
-        ?? pub.user?.imgPerfil
-        ?? 'https://marketplace.canva.com/A5alg/MAESXCA5alg/1/tl/canva-user-icon-MAESXCA5alg.png';
+    final String autorImagen =
+        pub.banda?.imgPerfil ??
+        pub.user?.imgPerfil ??
+        'https://marketplace.canva.com/A5alg/MAESXCA5alg/1/tl/canva-user-icon-MAESXCA5alg.png';
 
     return Scaffold(
       backgroundColor: const Color(0xFF1D1817),
@@ -80,98 +106,105 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
       body: Column(
         children: [
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-
-                // ── Card publicación ──────────────────────────
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF232120),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-
-                      // Cabecera autor
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 24,
-                            backgroundImage: NetworkImage(autorImagen),
-                            onBackgroundImageError: (_, __) {},
-                            backgroundColor: Colors.grey[800],
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              GestureDetector(
-                                onTap: () async {
-                                  // Si la publicación es de una banda, navegar a BandaAjenaView
-                                  if (pub.banda != null && pub.banda!.id != null) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => BandaAjenaView(bandaId: pub.banda!.id!),
-                                      ),
-                                    );
-                                  }
-                                  // Si es de un usuario, navegar a PerfilAjenoPage
-                                  else if (pub.user != null) {
-                                    final userResponse = await perfilService.getUsuario(pub.user!.id);
-                                    if (!mounted) return;
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => PerfilAjenoPage(usuario: userResponse),
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: Text(
-                                  '@$autorNombre',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+            child: RefreshIndicator(
+              color: const Color(0xFFFC7E39),
+              backgroundColor: const Color(0xFF232120),
+              onRefresh: _refrescar,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  // ── Card publicación ──────────────────────────
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF232120),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Cabecera autor
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 24,
+                              backgroundImage: NetworkImage(autorImagen),
+                              onBackgroundImageError: (_, __) {},
+                              backgroundColor: Colors.grey[800],
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                GestureDetector(
+                                  onTap: () async {
+                                    // Si la publicación es de una banda, navegar a BandaAjenaView
+                                    if (pub.banda != null &&
+                                        pub.banda!.id != null) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => BandaAjenaView(
+                                            bandaId: pub.banda!.id!,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    // Si es de un usuario, navegar a PerfilAjenoPage
+                                    else if (pub.user != null) {
+                                      final userResponse = await perfilService
+                                          .getUsuario(pub.user!.id);
+                                      if (!mounted) return;
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => PerfilAjenoPage(
+                                            usuario: userResponse,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: Text(
+                                    '@$autorNombre',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Text(
-                                _formatearHora(pub.createdAt),
-                                style: const TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 13,
+                                Text(
+                                  _formatearHora(pub.createdAt),
+                                  style: const TextStyle(
+                                    color: Colors.white54,
+                                    fontSize: 13,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Título
-                      if (pub.titulo != null && pub.titulo!.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Text(
-                            pub.titulo!,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 18,
+                              ],
                             ),
-                          ),
+                          ],
                         ),
 
-                      // Multimedia (imagen / audio / vídeo)
-                      if (pub.multimedia != null &&
-                          pub.multimedia!.url.isNotEmpty) ...
-                        [
+                        const SizedBox(height: 16),
+
+                        // Título
+                        if (pub.titulo != null && pub.titulo!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              pub.titulo!,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+
+                        // Multimedia (imagen / audio / vídeo)
+                        if (pub.multimedia != null &&
+                            pub.multimedia!.url.isNotEmpty) ...[
                           const SizedBox(height: 16),
                           if (pub.multimedia!.tipo.startsWith('audio'))
                             AudioPlayerWidget(url: pub.multimedia!.url)
@@ -192,7 +225,8 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                                     height: 200,
                                     child: Center(
                                       child: CircularProgressIndicator(
-                                          color: Colors.white54),
+                                        color: Colors.white54,
+                                      ),
                                     ),
                                   );
                                 },
@@ -200,130 +234,152 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                             ),
                         ],
 
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                      // Contador comentarios
-                      Row(
-                        children: [
-                          const Icon(Icons.comment_outlined,
-                              color: Colors.white54, size: 20),
-                          const SizedBox(width: 6),
-                          Text(
-                            '${pub.comentarios.length} comentario${pub.comentarios.length == 1 ? '' : 's'}',
-                            style: const TextStyle(
+                        // Contador comentarios
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.comment_outlined,
                               color: Colors.white54,
-                              fontSize: 15,
+                              size: 20,
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // ── Sección comentarios ───────────────────────
-                Text(
-                  'Comentarios (${pub.comentarios.length})',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                if (pub.comentarios.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Text(
-                      'Sé el primero en comentar.',
-                      style: TextStyle(color: Colors.white38, fontSize: 15),
+                            const SizedBox(width: 6),
+                            Text(
+                              '${pub.comentarios.length} comentario${pub.comentarios.length == 1 ? '' : 's'}',
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  )
-                else
-                  ...pub.comentarios.map(
-                    (c) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          
-                          const CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Color(0xFF3A3A4A),
-                            child: Icon(Icons.person,
-                                color: Colors.white54, size: 20),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF2C2C3A),
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      FutureBuilder<String>(
-                                        future: _obtenerUserName(c.usersId),
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState == ConnectionState.waiting) {
-                                            return const SizedBox(
-                                              height: 14,
-                                              width: 14,
-                                              child: CircularProgressIndicator(
-                                                color: Colors.white54,
-                                                strokeWidth: 2,
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // ── Sección comentarios ───────────────────────
+                  Text(
+                    'Comentarios (${pub.comentarios.length})',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  if (pub.comentarios.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        'Sé el primero en comentar.',
+                        style: TextStyle(color: Colors.white38, fontSize: 15),
+                      ),
+                    )
+                  else
+                    ...pub.comentarios.map(
+                      (c) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            FutureBuilder<UsuarioResponse?>(
+                              future: _obtenerUsuario(c.usersId),
+                              builder: (context, snapshot) {
+                                final u = snapshot.data;
+                                return CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: const Color(0xFF3A3A4A),
+                                  backgroundImage: u?.imgPerfil != null
+                                      ? NetworkImage(u!.imgPerfil!)
+                                      : null,
+                                  child: u?.imgPerfil == null
+                                      ? const Icon(
+                                          Icons.person,
+                                          color: Colors.white54,
+                                          size: 20,
+                                        )
+                                      : null,
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF2C2C3A),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        FutureBuilder<UsuarioResponse?>(
+                                          future: _obtenerUsuario(c.usersId),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.connectionState ==
+                                                ConnectionState.waiting) {
+                                              return const SizedBox(
+                                                height: 14,
+                                                width: 14,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      color: Colors.white54,
+                                                      strokeWidth: 2,
+                                                    ),
+                                              );
+                                            }
+                                            return Text(
+                                              '@${snapshot.data?.username ?? 'Usuario'}',
+                                              style: const TextStyle(
+                                                color: Color(0xFFFC7E39),
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 13,
                                               ),
                                             );
-                                          }
-                                          return Text(
-                                            '@${snapshot.data ?? 'Usuario'}',
-                                            style: const TextStyle(
-                                              color: Color(0xFFFC7E39),
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 13,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        c.contenidoTexto,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
+                                          },
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.only(left: 8, top: 4),
-                                  child: Text(
-                                    _formatearHora(c.createdAt),
-                                    style: const TextStyle(
-                                      color: Colors.white38,
-                                      fontSize: 12,
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          c.contenidoTexto,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ),
-                              ],
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 8,
+                                      top: 4,
+                                    ),
+                                    child: Text(
+                                      _formatearHora(c.createdAt),
+                                      style: const TextStyle(
+                                        color: Colors.white38,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
 
@@ -335,7 +391,6 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
               right: 16,
               top: 16,
               bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-
             ),
             child: Row(
               children: [
@@ -358,7 +413,9 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                         borderSide: BorderSide.none,
                       ),
                       contentPadding: const EdgeInsets.symmetric(
-                          vertical: 0, horizontal: 16),
+                        vertical: 0,
+                        horizontal: 16,
+                      ),
                     ),
                     style: const TextStyle(color: Colors.white),
                   ),
@@ -387,12 +444,7 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                         );
                         try {
                           await ComentarioService().crearComentario(request);
-                          await Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PublicacionDetailView(publicacion: widget.publicacion),
-                            ),
-                          );
+                          await _refrescar();
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(

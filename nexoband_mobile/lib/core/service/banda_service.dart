@@ -1,7 +1,5 @@
-
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:nexoband_mobile/config/api_base_url.dart';
 import 'package:nexoband_mobile/config/guardar_token.dart';
@@ -10,8 +8,24 @@ import 'package:nexoband_mobile/core/interface/banda_interfaz.dart';
 import 'package:nexoband_mobile/core/model/banda_response.dart';
 import 'package:nexoband_mobile/core/model/grupo_response.dart';
 
-
 class BandaService implements BandaInterfaz {
+
+  static String _mensajeError(int statusCode, String operacion, [Map<String, dynamic>? body]) {
+    switch (statusCode) {
+      case 400: return body?['message'] ?? 'La solicitud no es válida';
+      case 401: return 'Sesión expirada. Vuelve a iniciar sesión';
+      case 403: return 'No tienes permiso para realizar esta acción';
+      case 404: return 'La banda no existe o fue eliminada';
+      case 409: return body?['message'] ?? 'Conflicto al procesar la solicitud';
+      case 422: return body?['message'] ?? 'Datos de la banda no válidos';
+      case 500: return 'Error interno del servidor. Inténtalo más tarde';
+      default:  return 'Error al $operacion (código $statusCode)';
+    }
+  }
+
+  static Map<String, dynamic>? _parseBody(String body) {
+    try { return jsonDecode(body) as Map<String, dynamic>?; } catch (_) { return null; }
+  }
   
   @override
   Future<BandaResponse> getBandaDetail(int bandaId) async {
@@ -23,14 +37,11 @@ class BandaService implements BandaInterfaz {
       },
     );
     if (response.statusCode == 200) {
-      debugPrint('[BandaService] getBandaDetail response: ${response.body}');
       final json = jsonDecode(response.body) as Map<String, dynamic>;
-      // El backend envuelve la respuesta en { "banda": {...} }
       final bandaJson = (json['banda'] ?? json) as Map<String, dynamic>;
       return BandaResponse.fromJson(bandaJson);
-    } else {
-      throw Exception('Error al cargar los detalles de la banda');
     }
+    throw Exception(_mensajeError(response.statusCode, 'cargar los detalles de la banda', _parseBody(response.body)));
   }
 
   Future<List<GrupoResponse>> getGrupos() async {
@@ -44,9 +55,8 @@ class BandaService implements BandaInterfaz {
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body) as List<dynamic>;
       return jsonList.map((e) => GrupoResponse.fromJson(e)).toList();
-    } else {
-      throw Exception('Error al cargar los grupos');
     }
+    throw Exception(_mensajeError(response.statusCode, 'cargar los grupos', _parseBody(response.body)));
   }
 
   Future<void> crearBanda(BandaRequest? request) async {
@@ -71,9 +81,8 @@ class BandaService implements BandaInterfaz {
 
     if (response.statusCode == 201) {
       return;
-    } else {
-      throw Exception('Error ${response.statusCode}: $responseBody');
     }
+    throw Exception(_mensajeError(response.statusCode, 'crear la banda', _parseBody(responseBody)));
   }
 
   Future<void> editarImagenPerfil(int bandaId, String imagePath) async {
@@ -104,7 +113,7 @@ class BandaService implements BandaInterfaz {
     final response = await http.Response.fromStream(streamed);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+      throw Exception(_mensajeError(response.statusCode, 'subir la imagen de la banda', _parseBody(response.body)));
     }
   }
 
@@ -122,7 +131,7 @@ class BandaService implements BandaInterfaz {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+      throw Exception(_mensajeError(response.statusCode, 'editar la banda', _parseBody(response.body)));
     }
   }
 
@@ -139,7 +148,7 @@ class BandaService implements BandaInterfaz {
       body: jsonEncode({'users_id': users_id, 'bandas_id': bandas_id}),
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+      throw Exception(_mensajeError(response.statusCode, 'agregar el miembro a la banda', _parseBody(response.body)));
     }
   }
 
@@ -155,7 +164,7 @@ class BandaService implements BandaInterfaz {
       body: jsonEncode({'users_id': users_id, 'bandas_id': bandas_id}),
     );
     if (response.statusCode != 200) {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+      throw Exception(_mensajeError(response.statusCode, 'eliminar el miembro de la banda', _parseBody(response.body)));
     }
   }
 
@@ -171,7 +180,7 @@ class BandaService implements BandaInterfaz {
     );
 
     if (response.statusCode != 200) {
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+      throw Exception(_mensajeError(response.statusCode, 'eliminar la banda', _parseBody(response.body)));
     }
   }
 }

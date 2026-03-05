@@ -479,6 +479,7 @@ class _AjustesEditarPerfilState extends State<AjustesEditarPerfil> {
         child: TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          maxLength: 500,
           maxLines: maxLines,
           validator: validator,
           style: const TextStyle(color: Colors.white),

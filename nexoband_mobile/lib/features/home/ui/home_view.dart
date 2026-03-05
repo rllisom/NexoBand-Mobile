@@ -26,6 +26,7 @@ class _HomeViewState extends State<HomeView> {
   late final PublicacionBloc publicacionBloc;
   late final ChatBloc chatBloc;
   int _selectedIndex = 0;
+  Key _publicacionViewKey = UniqueKey();
 
   @override
   void initState() {
@@ -94,8 +95,7 @@ class _HomeViewState extends State<HomeView> {
                     backgroundColor: Color(0xFF22c55e),
                   ),
                 );
-                // Recargar el feed
-                publicacionBloc.add(CargarFeed());
+                setState(() => _publicacionViewKey = UniqueKey());
               }
             } catch (e) {
               if (mounted) {
@@ -141,7 +141,7 @@ class _HomeViewState extends State<HomeView> {
             );
           }
           if (state is PublicacionesCargadas) {
-            return PublicacionView();
+            return PublicacionView(key: _publicacionViewKey);
           }
           return const Center(child: CircularProgressIndicator());
         },

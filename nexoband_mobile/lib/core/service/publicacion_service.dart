@@ -10,6 +10,25 @@ import 'package:nexoband_mobile/core/model/publicacion_response.dart';
 
 
 class PublicacionService implements PublicacionInterface {
+
+  static String _mensajeError(int statusCode, String operacion, [Map<String, dynamic>? body]) {
+    if (body?['errors'] != null) {
+      final errors = body!['errors'] as Map<String, dynamic>;
+      return errors.values
+          .expand((v) => v is List ? v.map((e) => e.toString()) : [v.toString()])
+          .join('\n');
+    }
+    switch (statusCode) {
+      case 400: return body?['message'] ?? 'La solicitud no es válida';
+      case 401: return 'Sesión expirada. Vuelve a iniciar sesión';
+      case 403: return 'No tienes permiso para realizar esta acción';
+      case 404: return 'La publicación no existe o fue eliminada';
+      case 422: return body?['message'] ?? 'Datos de la publicación no válidos';
+      case 500: return 'Error interno del servidor. Inténtalo más tarde';
+      default:  return 'Error al $operacion (código $statusCode)';
+    }
+  }
+
   // ── Listar publicaciones del usuario autenticado ──────────────────────────
   @override
   Future<List<Publicacion>> listarPublicacionesUsuario() async {
@@ -26,9 +45,9 @@ class PublicacionService implements PublicacionInterface {
       final decoded = jsonDecode(response.body);
       return _parseLista(decoded);
     }
-    throw Exception(
-      'Error al listar publicaciones: ${response.statusCode} - ${response.reasonPhrase}',
-    );
+    Map<String, dynamic>? body;
+    try { body = jsonDecode(response.body) as Map<String, dynamic>?; } catch (_) {}
+    throw Exception(_mensajeError(response.statusCode, 'cargar publicaciones', body));
   }
 
   // ── Crear publicación (con o sin multimedia) ──────────────────────────────
@@ -71,7 +90,9 @@ class PublicacionService implements PublicacionInterface {
       final jsonResponse = json.decode(response.body);
       return Publicacion.fromJson(jsonResponse['publicacion']);
     }
-    throw Exception('Error ${response.statusCode}: ${response.body}');
+    Map<String, dynamic>? body;
+    try { body = jsonDecode(response.body) as Map<String, dynamic>?; } catch (_) {}
+    throw Exception(_mensajeError(response.statusCode, 'crear la publicación', body));
   }
 
   // ── Eliminar publicación ──────────────────────────────────────────────────
@@ -87,9 +108,9 @@ class PublicacionService implements PublicacionInterface {
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) return;
-    throw Exception(
-      'Error al eliminar publicación: ${response.statusCode} - ${response.reasonPhrase}',
-    );
+    Map<String, dynamic>? body;
+    try { body = jsonDecode(response.body) as Map<String, dynamic>?; } catch (_) {}
+    throw Exception(_mensajeError(response.statusCode, 'eliminar la publicación', body));
   }
 
   // ── Feed de publicaciones ─────────────────────────────────────────────────
@@ -108,9 +129,9 @@ class PublicacionService implements PublicacionInterface {
       final decoded = jsonDecode(response.body);
       return _parseLista(decoded);
     }
-    throw Exception(
-      'Error al cargar feed: ${response.statusCode} - ${response.reasonPhrase}',
-    );
+    Map<String, dynamic>? body;
+    try { body = jsonDecode(response.body) as Map<String, dynamic>?; } catch (_) {}
+    throw Exception(_mensajeError(response.statusCode, 'cargar el feed', body));
   }
 
   // ── Ver detalle ───────────────────────────────────────────────────────────
@@ -126,11 +147,15 @@ class PublicacionService implements PublicacionInterface {
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return Publicacion.fromJson(jsonDecode(response.body));
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final data = decoded.containsKey('publicacion')
+          ? decoded['publicacion'] as Map<String, dynamic>
+          : decoded;
+      return Publicacion.fromJson(data);
     }
-    throw Exception(
-      'Error al obtener detalle de publicación: ${response.statusCode} - ${response.reasonPhrase}',
-    );
+    Map<String, dynamic>? body;
+    try { body = jsonDecode(response.body) as Map<String, dynamic>?; } catch (_) {}
+    throw Exception(_mensajeError(response.statusCode, 'cargar el detalle de la publicación', body));
   }
 
 

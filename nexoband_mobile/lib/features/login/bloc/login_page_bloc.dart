@@ -16,7 +16,7 @@ class LoginPageBloc extends Bloc<LoginPageEvent, LoginPageState> {
         final response = await authSessionService.iniciarSesion(event.request);
         emit(LoginPageSuccess(response));
       } catch (e) {
-        emit(LoginPageError(e.toString()));
+        emit(LoginPageError(e.toString().replaceFirst('Exception: ', '')));
       }
     });
   }

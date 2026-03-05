@@ -111,6 +111,25 @@ class _AjustesViewState extends State<AjustesView> {
                         fontSize: 12,
                       ),
                     ),
+                    SizedBox(height: 30),
+                    Text(
+                      '¿Tienes dudas o problemas? Contacta con el administrador:',
+                      style: TextStyle(
+                        color: Color(0xFFB0B0B0),
+                        fontSize: 13,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'admin@nexoband.com',
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
               ),

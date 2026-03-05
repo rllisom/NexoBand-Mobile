@@ -76,9 +76,10 @@ class UsuarioResponse {
       instrumentos: (json['instrumentos'] as List? ?? [])
           .map((i) => InstrumentoResponse.fromJson(i as Map<String, dynamic>))
           .toList(),
-      publicaciones: (json['publicaciones'] as List? ?? [])
+      publicaciones: ((json['publicaciones'] as List? ?? [])
           .map((p) => Publicacion.fromJson(p as Map<String, dynamic>))
-          .toList(),
+          .toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt))),
       bandas: (json['bandas'] as List? ?? [])
           .map((b) => BandaEnUsuarioResponse.fromJson(b as Map<String, dynamic>))
           .toList(),

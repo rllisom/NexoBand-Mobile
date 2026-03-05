@@ -17,7 +17,7 @@ class EventoBloc extends Bloc<EventoEvent, EventoState> {
           final evento = await eventoService.crearEvento(event.dto);
           emit(EventoCreado(evento));
         } catch (e) {
-          emit(EventoCreadoError(e.toString()));
+          emit(EventoCreadoError(e.toString().replaceFirst('Exception: ', '')));
         }
       }
       else if(event is CargarEventos) {
@@ -26,7 +26,7 @@ class EventoBloc extends Bloc<EventoEvent, EventoState> {
           final eventos = await eventoService.cargarEventos(soloProximos: event.soloProximos);
           emit(EventosCargados(eventos));
         } catch (e) {
-          emit(EventosCargaError(e.toString()));
+          emit(EventosCargaError(e.toString().replaceFirst('Exception: ', '')));
         }
       }
     });
