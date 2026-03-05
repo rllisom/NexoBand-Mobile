@@ -9,6 +9,7 @@ class SearchBandCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('SearchBandCardWidget: banda.imgPerfil="${banda.imgPerfil}"');
     return GestureDetector(
       onTap: () {
           Navigator.push(context,
@@ -25,13 +26,41 @@ class SearchBandCardWidget extends StatelessWidget {
             // Avatar de banda
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Container(
+              
+              child: banda.imgPerfil != null && banda.imgPerfil!.isNotEmpty
+                ? Image.network(
+                  banda.imgPerfil!,
+                  width: 56,
+                  height: 56,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, error, ___) {
+                    debugPrint('SearchBandCardWidget: error cargando imagen: $error');
+                    return Container(
                       width: 56,
                       height: 56,
                       color: Colors.grey[800],
                       child: const Icon(Icons.music_note,
                           color: Colors.white54, size: 28),
-                    ),
+                    );
+                  },
+                  loadingBuilder: (_, child, progress) =>
+                    progress == null
+                      ? child
+                      : Container(
+                        width: 56,
+                        height: 56,
+                        color: Colors.grey[800],
+                        child: const Icon(Icons.music_note,
+                          color: Colors.white54, size: 28),
+                      ),
+                )
+                : Container(
+                  width: 56,
+                  height: 56,
+                  color: Colors.grey[800],
+                  child: const Icon(Icons.music_note,
+                    color: Colors.white54, size: 28),
+                ),
             ),
             const SizedBox(width: 14),
             // Info

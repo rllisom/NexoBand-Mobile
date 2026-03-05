@@ -126,7 +126,7 @@ class UsuarioBanda {
       final filename = raw.split('/').last;
       if (filename.isNotEmpty) {
         imgPerfilUrl =
-            'http://10.0.2.2:8000/storage/perfiles/$filename'; // ✅ perfiles, no bandas
+            'http://10.0.2.2:8000/storage/perfiles/$filename'; 
       }
     }
     return UsuarioBanda(

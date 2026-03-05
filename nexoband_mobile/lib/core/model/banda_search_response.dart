@@ -16,10 +16,18 @@ class BandaSearchResponse {
   });
 
   factory BandaSearchResponse.fromJson(Map<String, dynamic> json) {
+    String? imgPerfilUrl;
+    if (json['img_perfil'] != null) {
+      final raw = json['img_perfil'] as String;
+      final filename = raw.split('/').last;
+      if (filename.isNotEmpty) {
+        imgPerfilUrl = 'http://10.0.2.2:8000/storage/bandas/$filename';
+      }
+    }
     return BandaSearchResponse(
       id: (json['id'] as num?)?.toInt() ?? 0,
       nombre: json['nombre'] as String? ?? '',
-      imgPerfil: json['img_perfil'] as String?,
+      imgPerfil: imgPerfilUrl,
       genero: json['genero'] as String?,
       descripcion: json['descripcion'] as String?,
       seguidoresCount: (json['seguidores_count'] as num?)?.toInt() ?? 0,
