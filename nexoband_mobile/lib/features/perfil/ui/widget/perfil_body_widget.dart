@@ -137,10 +137,14 @@ class _PerfilBodyWidgetState extends State<PerfilBodyWidget> {
                         color: Colors.white,
                         size: 20,
                       ),
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AjustesView()),
-                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AjustesView()),
+                        ).then((_) {
+                          if (mounted) context.read<PerfilBloc>().add(CargarPerfil());
+                        });
+                      },
                     )
                   else
                     const SizedBox.shrink(),

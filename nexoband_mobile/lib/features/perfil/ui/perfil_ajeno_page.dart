@@ -84,7 +84,7 @@ class _PerfilAjenoPageState extends State<PerfilAjenoPage> {
           Container(
             color: const Color(0xFF232120),
             padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
-            height: 48,
+            height: 70,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

@@ -99,8 +99,9 @@ class _CrearPublicacionModalState extends State<CrearPublicacionModal> {
                           backgroundImage: widget.usuarioActual.imgPerfil != null
                               ? NetworkImage(limpiarUrlImagen(widget.usuarioActual.imgPerfil, carpeta: 'perfiles'))
                               : null,
+                          backgroundColor: Colors.grey[700],
                           child: widget.usuarioActual.imgPerfil == null
-                              ? const Icon(Icons.person, size: 20)
+                              ? const Icon(Icons.person, size: 20, color: Colors.white)
                               : null,
                         ),
                         const SizedBox(width: 12),

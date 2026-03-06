@@ -41,6 +41,8 @@ class AuthSessionService implements AuthSessionInterface{
       case 401:
       case 422:
         throw Exception('Correo electrónico o contraseña incorrectos');
+      case 403:
+        throw Exception('Cuenta desactivada: contactar con admin@nexoband.com');
       case 404:
         throw Exception('No existe ninguna cuenta con ese correo electrónico');
       case 429:

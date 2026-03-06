@@ -38,9 +38,7 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
 
   Future<void> _refrescar() async {
     try {
-      final comentarios = await _comentarioService.listarComentarios(
-        _publicacion.id,
-      );
+      final comentarios = await _comentarioService.listarComentarios(_publicacion.id);
       if (mounted) {
         setState(() {
           _publicacion = Publicacion(
@@ -433,19 +431,41 @@ class _PublicacionDetailViewState extends State<PublicacionDetailView> {
                   child: IconButton(
                     icon: const Icon(Icons.send, color: Colors.white),
                     onPressed: () async {
-                      final comentario = _comentarioController.text;
-                      Future<int> userId = GuardarToken.getUsuarioId();
+                      final comentario = _comentarioController.text.trim();
                       if (comentario.isNotEmpty) {
+                        final int userId = await GuardarToken.getUsuarioId();
                         final request = ComentarioRequest(
-                          usersId: await userId,
+                          usersId: userId,
                           publicacionId: widget.publicacion.id,
                           bandasId: null,
                           contenidoTexto: comentario,
                         );
                         try {
-                          await ComentarioService().crearComentario(request);
-                          await _refrescar();
+                          await _comentarioService.crearComentario(request);
                           if (mounted) {
+                            setState(() {
+                              _publicacion = Publicacion(
+                                id: _publicacion.id,
+                                titulo: _publicacion.titulo,
+                                contenido: _publicacion.contenido,
+                                createdAt: _publicacion.createdAt,
+                                updatedAt: _publicacion.updatedAt,
+                                user: _publicacion.user,
+                                banda: _publicacion.banda,
+                                multimedia: _publicacion.multimedia,
+                                comentarios: [
+                                  ..._publicacion.comentarios,
+                                  Comentario(
+                                    id: 0,
+                                    usersId: userId,
+                                    publicacionId: _publicacion.id,
+                                    bandasId: null,
+                                    contenidoTexto: comentario,
+                                    createdAt: DateTime.now(),
+                                  ),
+                                ],
+                              );
+                            });
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Comentario enviado'),
