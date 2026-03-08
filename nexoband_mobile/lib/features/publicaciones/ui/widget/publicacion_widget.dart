@@ -40,7 +40,6 @@ class _PublicacionWidgetState extends State<PublicacionWidget> {
 
     final String? autorImagenRaw = banda != null ? banda.imgPerfil : user?.imgPerfil;
     final String autorImagen = autorImagenRaw ?? '';
-    debugPrint('PublicacionWidget: autorImagenRaw="$autorImagenRaw", autorImagen="$autorImagen"');
     final String hora =
         '${pub.createdAt.hour.toString().padLeft(2, '0')}:'
         '${pub.createdAt.minute.toString().padLeft(2, '0')}';

@@ -101,47 +101,47 @@ class PublicidadWidget extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // ── Botón de acción ────────────────────────────────
-              SizedBox(
-                width: double.infinity,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFF13B57), Color(0xFFFC7E39)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Aquí puedes abrir una URL, mostrar más info, etc.
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Contacto: ${publicidad.emailContacto}'),
-                          backgroundColor: const Color(0xFF232120),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Más información',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              // // ── Botón de acción ────────────────────────────────
+              // SizedBox(
+              //   width: double.infinity,
+              //   child: Container(
+              //     decoration: BoxDecoration(
+              //       gradient: const LinearGradient(
+              //         colors: [Color(0xFFF13B57), Color(0xFFFC7E39)],
+              //         begin: Alignment.centerLeft,
+              //         end: Alignment.centerRight,
+              //       ),
+              //       borderRadius: BorderRadius.circular(8),
+              //     ),
+              //     child: ElevatedButton(
+              //       onPressed: () {
+              //         // Aquí puedes abrir una URL, mostrar más info, etc.
+              //         ScaffoldMessenger.of(context).showSnackBar(
+              //           SnackBar(
+              //             content: Text('Contacto: ${publicidad.emailContacto}'),
+              //             backgroundColor: const Color(0xFF232120),
+              //           ),
+              //         );
+              //       },
+              //       style: ElevatedButton.styleFrom(
+              //         backgroundColor: Colors.transparent,
+              //         shadowColor: Colors.transparent,
+              //         padding: const EdgeInsets.symmetric(vertical: 12),
+              //         shape: RoundedRectangleBorder(
+              //           borderRadius: BorderRadius.circular(8),
+              //         ),
+              //       ),
+              //       child: const Text(
+              //         'Más información',
+              //         style: TextStyle(
+              //           color: Colors.white,
+              //           fontWeight: FontWeight.bold,
+              //           fontSize: 14,
+              //         ),
+              //       ),
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),

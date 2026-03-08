@@ -83,19 +83,6 @@ class SearchMusicianCardWidget extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            // Seguidores
-            Column(
-              children: [
-                const Icon(Icons.people, color: Colors.white54, size: 16),
-                const SizedBox(height: 2),
-                Text(
-                  '${usuario.seguidoresCount}',
-                  style: const TextStyle(
-                      color: Colors.white54, fontSize: 12),
-                ),
-              ],
-            ),
           ],
         ),
       ),
